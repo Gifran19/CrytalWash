@@ -1,0 +1,155 @@
+// ===========================================================
+// CrystalWash - Prisma Schema
+// Database: Supabase PostgreSQL
+// ===========================================================
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ===========================================================
+// Model: Pelanggan (Customer)
+// ===========================================================
+model pelanggan {
+  id_pelanggan Int         @id @default(autoincrement())
+  nama         String      @db.VarChar(100)
+  no_hp        String      @db.VarChar(20)
+  email        String      @db.VarChar(100)
+  created_at   DateTime    @default(now()) @db.Timestamptz(6)
+
+  kendaraan    kendaraan[]
+  booking      booking[]
+}
+
+// ===========================================================
+// Model: Kasir (Cashier)
+// ===========================================================
+model kasir {
+  id_kasir   Int         @id @default(autoincrement())
+  username   String      @unique @db.VarChar(50)
+  password   String      @db.VarChar(255)
+  created_at DateTime    @default(now()) @db.Timestamptz(6)
+
+  transaksi  transaksi[]
+}
+
+// ===========================================================
+// Model: Kendaraan (Vehicle)
+// ===========================================================
+model kendaraan {
+  id_kendaraan Int       @id @default(autoincrement())
+  jenis        String    @db.VarChar(20) // 'Car' atau 'Motorcycle'
+  no_plat      String    @db.VarChar(20)
+  id_pelanggan Int
+
+  pelanggan    pelanggan @relation(fields: [id_pelanggan], references: [id_pelanggan])
+  booking      booking[]
+}
+
+// ===========================================================
+// Model: Layanan (Service)
+// ===========================================================
+model layanan {
+  id_layanan      Int       @id @default(autoincrement())
+  nama_layanan    String    @db.VarChar(50)
+  harga           Int
+  jenis_kendaraan String    @default("Car") @db.VarChar(20)
+
+  booking         booking[]
+}
+
+// ===========================================================
+// Model: Booking
+// ===========================================================
+model booking {
+  id_booking     Int       @id @default(autoincrement())
+  tanggal        DateTime  @db.Date
+  status         String    @default("pending") @db.VarChar(20)
+  jenis_booking  String    @default("online") @db.VarChar(30)
+  estimasi_waktu Int       // dalam menit
+  id_pelanggan   Int
+  id_kendaraan   Int
+  id_layanan     Int
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+
+  pelanggan      pelanggan  @relation(fields: [id_pelanggan], references: [id_pelanggan])
+  kendaraan      kendaraan  @relation(fields: [id_kendaraan], references: [id_kendaraan])
+  layanan        layanan    @relation(fields: [id_layanan], references: [id_layanan])
+
+  antrian        antrian?
+  pembayaran     pembayaran?
+  transaksi      transaksi?
+  invoice        invoice?
+  feedback       feedback?
+}
+
+// ===========================================================
+// Model: Antrian (Queue)
+// ===========================================================
+model antrian {
+  id_antrian    Int      @id @default(autoincrement())
+  nomor_antrian Int
+  status        String   @default("menunggu") @db.VarChar(20)
+  id_booking    Int      @unique
+
+  booking       booking  @relation(fields: [id_booking], references: [id_booking])
+}
+
+// ===========================================================
+// Model: Pembayaran (Payment)
+// ===========================================================
+model pembayaran {
+  id_pembayaran Int      @id @default(autoincrement())
+  metode        String   @db.VarChar(20) // 'COD', 'Credit', 'Ewallet'
+  status        String   @default("unpaid") @db.VarChar(20)
+  total         Int
+  id_booking    Int      @unique
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  booking       booking  @relation(fields: [id_booking], references: [id_booking])
+}
+
+// ===========================================================
+// Model: Invoice
+// ===========================================================
+model invoice {
+  id_invoice Int      @id @default(autoincrement())
+  tanggal    DateTime @default(now()) @db.Timestamptz(6)
+  total      Int
+  id_booking Int      @unique
+
+  booking    booking  @relation(fields: [id_booking], references: [id_booking])
+}
+
+// ===========================================================
+// Model: Transaksi (Transaction)
+// ===========================================================
+model transaksi {
+  id_transaksi Int      @id @default(autoincrement())
+  tanggal      DateTime @default(now()) @db.Timestamptz(6)
+  total        Int
+  id_booking   Int      @unique
+  id_kasir     Int?
+
+  booking      booking  @relation(fields: [id_booking], references: [id_booking])
+  kasir        kasir?   @relation(fields: [id_kasir], references: [id_kasir])
+}
+
+// ===========================================================
+// Model: Feedback
+// ===========================================================
+model feedback {
+  id_feedback Int      @id @default(autoincrement())
+  rating      Int      // 1-5
+  komentar    String?  @db.Text
+  tanggal     DateTime @default(now()) @db.Timestamptz(6)
+  id_booking  Int      @unique
+
+  booking     booking  @relation(fields: [id_booking], references: [id_booking])
+}

@@ -1,0 +1,180 @@
+<?php
+$hide_navbar = true; // Sembunyikan navbar global
+require_once BASE_PATH . '/app/Config/database.php';
+
+// Ambil data dari session atau URL (idealnya dari DB berdasarkan ID)
+$order = $_SESSION['order'] ?? [];
+$id_booking = $_GET['id'] ?? ($order['id_booking'] ?? 'INV-' . strtoupper(uniqid()));
+$date = date('d.m.Y');
+
+// Coba ambil dari database jika id_booking valid
+$booking_data = [];
+if (!empty($order['id_booking'])) {
+    $stmt = $conn->prepare("SELECT 
+            b.*, l.nama_layanan, l.harga, k.no_plat, k.jenis
+        FROM booking b
+        JOIN layanan l ON b.id_layanan = l.id_layanan
+        JOIN kendaraan k ON b.id_kendaraan = k.id_kendaraan
+        WHERE b.id_booking = :id_booking");
+    $stmt->execute(['id_booking' => $order['id_booking']]);
+    $booking_data = $stmt->fetch();
+}
+
+$name = $order['nama'] ?? 'Guest';
+$email = $order['email'] ?? '-';
+$whatsapp = $order['whatsapp'] ?? '-';
+$service = $booking_data['nama_layanan'] ?? ($order['layanan'] ?? 'Quick Wash');
+$service_date = $booking_data['tanggal'] ?? date('Y-m-d');
+$duration = $booking_data['estimasi_waktu'] ?? 30;
+$payment_method = $order['payment_method'] ?? 'COD';
+$price = $booking_data['harga'] ?? ($order['total_price'] ?? 0);
+$admin_fee = 2000;
+$total = $price + $admin_fee;
+?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - <?= htmlspecialchars($id_booking) ?></title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white !important; }
+            .print-shadow-none { box-shadow: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen flex items-center justify-center p-4 md:p-8">
+
+    <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden print-shadow-none border border-gray-100 relative pb-24">
+        
+        <!-- Top Header Bar -->
+        <div class="bg-olive-700 px-10 py-6 flex justify-between items-center">
+            <h1 class="font-serif text-2xl md:text-3xl font-bold text-white tracking-tight">CrystalWash</h1>
+            <!-- Action buttons (Hidden in print) -->
+            <div class="space-x-3 no-print">
+                <button onclick="window.print()" class="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Invoice Title & Meta -->
+        <div class="text-center pt-12 pb-8 px-10">
+            <h2 class="text-5xl font-light tracking-widest text-gray-900 mb-6">INVOICE</h2>
+            <p class="text-sm text-gray-500 mb-1">No: <span class="font-semibold text-gray-900"><?= htmlspecialchars($id_booking) ?></span></p>
+            <p class="text-sm text-gray-500">Invoice date: <span class="font-semibold text-gray-900"><?= $date ?></span></p>
+        </div>
+
+        <div class="px-8 md:px-12 space-y-6">
+            
+            <!-- INFORMASI PELANGGAN -->
+            <div class="border border-gray-200 rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-4">
+                    <svg class="w-6 h-6 text-olive-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    <h3 class="font-bold text-gray-900 tracking-wide text-sm">INFORMASI PELANGGAN</h3>
+                </div>
+                <div class="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <p class="text-gray-500 text-xs mb-1">Name</p>
+                        <p class="font-semibold text-gray-900"><?= htmlspecialchars($name) ?></p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-xs mb-1">Email</p>
+                        <p class="font-semibold text-gray-900"><?= htmlspecialchars($email) ?></p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-xs mb-1">No. HP</p>
+                        <p class="font-semibold text-gray-900"><?= htmlspecialchars($whatsapp) ?></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DETAIL LAYANAN -->
+            <div class="border border-gray-200 rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-4">
+                    <svg class="w-6 h-6 text-olive-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    <h3 class="font-bold text-gray-900 tracking-wide text-sm">DETAIL LAYANAN</h3>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-gray-50 rounded-xl px-4 py-3">
+                        <p class="text-gray-400 text-[10px] uppercase font-bold mb-1">Layanan</p>
+                        <p class="font-semibold text-gray-900 text-sm"><?= htmlspecialchars($service) ?></p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl px-4 py-3">
+                        <p class="text-gray-400 text-[10px] uppercase font-bold mb-1">Tanggal</p>
+                        <p class="font-semibold text-gray-900 text-sm"><?= date('d M Y', strtotime($service_date)) ?></p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl px-4 py-3">
+                        <p class="text-gray-400 text-[10px] uppercase font-bold mb-1">Estimasi Durasi</p>
+                        <p class="font-semibold text-gray-900 text-sm"><?= $duration ?> Menit</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl px-4 py-3">
+                        <p class="text-gray-400 text-[10px] uppercase font-bold mb-1">Status Kendaraan</p>
+                        <p class="font-semibold text-olive-700 text-sm">Selesai</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DETAIL PEMBAYARAN -->
+            <div class="border border-gray-200 rounded-2xl p-6">
+                <div class="flex items-center space-x-3 mb-4">
+                    <svg class="w-6 h-6 text-olive-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                    <h3 class="font-bold text-gray-900 tracking-wide text-sm">DETAIL PEMBAYARAN</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 rounded-xl px-4 py-3 flex justify-between items-center">
+                        <span class="text-gray-500 text-xs font-medium">Metode Pembayaran</span>
+                        <span class="font-bold text-gray-900 text-sm"><?= htmlspecialchars($payment_method) ?></span>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl px-4 py-3 flex justify-between items-center">
+                        <span class="text-gray-500 text-xs font-medium">Status Pembayaran</span>
+                        <span class="font-bold text-green-600 text-sm px-2 py-1 bg-green-100 rounded text-[10px] uppercase">Lunas</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RINCIAN BIAYA -->
+            <div class="border border-gray-200 rounded-2xl p-6 relative overflow-hidden">
+                <div class="absolute right-0 top-0 w-32 h-32 bg-olive-50 rounded-full -mr-10 -mt-10 opacity-50"></div>
+                
+                <div class="flex items-center space-x-3 mb-6 relative z-10">
+                    <svg class="w-6 h-6 text-olive-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                    <h3 class="font-bold text-gray-900 tracking-wide text-sm">RINCIAN BIAYA</h3>
+                </div>
+                
+                <div class="space-y-3 relative z-10">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Harga Layanan</span>
+                        <span class="font-medium text-gray-900">Rp <?= number_format($price, 0, ',', '.') ?></span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Biaya Admin</span>
+                        <span class="font-medium text-gray-900">Rp <?= number_format($admin_fee, 0, ',', '.') ?></span>
+                    </div>
+                    
+                    <hr class="border-gray-200 my-4">
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-900 text-base">TOTAL PEMBAYARAN</span>
+                        <span class="font-bold text-olive-700 text-2xl">Rp <?= number_format($total, 0, ',', '.') ?></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aesthetic Footer Wave & Back Button -->
+        <div class="absolute bottom-0 left-0 w-full h-24 bg-olive-700 rounded-tr-[5rem] flex items-center justify-end px-10 no-print">
+            <a href="index.php?page=finish" class="bg-white text-olive-800 font-bold px-8 py-3 rounded-full hover:bg-gray-100 transition-colors shadow-lg text-sm">
+                Kembali
+            </a>
+        </div>
+        
+        <!-- Background shape to complete the wave illusion -->
+        <div class="absolute bottom-0 left-0 w-1/2 h-24 bg-white z-[-1]"></div>
+    </div>
+</body>
+</html>
