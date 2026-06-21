@@ -1,10 +1,10 @@
 <?php include BASE_PATH . '/app/Views/layouts/header.php'; ?>
 
 <!-- Hero Section -->
-<section class="py-20 bg-white">
+<section class="py-28 bg-gradient-to-b from-olive-50 dark:from-slate-900 to-white dark:to-slate-900 transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h1 class="text-5xl md:text-7xl font-bold font-serif leading-tight mb-12">
-            Cuci Lebih Pintar<br>Bukan Lebih Lama
+            <?= trans('hero_title') ?>
         </h1>
         
         <div class="relative max-w-5xl mx-auto">
@@ -17,9 +17,9 @@
 </section>
 
 <!-- Marquee / Brands / Services List -->
-<section class="py-8 border-b border-gray-100">
+<section class="py-10 border-b border-gray-100 dark:border-gray-800 transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-wrap justify-center gap-8 md:gap-16 text-sm text-gray-500 tracking-wider uppercase font-medium">
+        <div class="flex flex-wrap justify-center gap-8 md:gap-16 text-sm text-gray-500 dark:text-gray-400 tracking-[0.2em] uppercase font-medium">
             <span>Quick Wash</span>
             <span>Full Wash</span>
             <span>Premium Wash</span>
@@ -30,29 +30,29 @@
 </section>
 
 <!-- Benefit Section -->
-<section id="benefit" class="py-24 bg-white">
+<section id="benefit" class="py-24 bg-white dark:bg-slate-900 transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-3xl mb-16">
-            <h2 class="text-3xl md:text-4xl font-serif font-bold mb-4">Pesan dalam detik, bersinar dalam menit</h2>
-            <p class="text-gray-500 uppercase text-xs font-semibold tracking-widest">Layanan premium dengan presisi tinggi</p>
+            <h2 class="text-3xl md:text-4xl font-serif font-bold mb-4"><?= trans('benefit_title') ?></h2>
+            <p class="text-gray-500 dark:text-gray-400 uppercase text-xs font-semibold tracking-widest"><?= trans('benefit_subtitle') ?></p>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
-            <div>
-                <h4 class="text-sm font-bold border-b border-gray-200 pb-2 mb-3">Hemat Waktu & Cepat</h4>
-                <p class="text-xs text-gray-500 leading-relaxed">Seluruh proses dioptimalkan untuk menghemat waktu Anda. Kami bekerja efisien tanpa mengorbankan kualitas.</p>
+            <div class="bg-olive-50 dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-transparent dark:border-gray-700">
+                <h4 class="text-sm font-bold border-b border-gray-200 dark:border-gray-700 pb-2 mb-3"><?= trans('benefit_1_title') ?></h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed"><?= trans('benefit_1_desc') ?></p>
             </div>
-            <div>
-                <h4 class="text-sm font-bold border-b border-gray-200 pb-2 mb-3">Layanan Premium</h4>
-                <p class="text-xs text-gray-500 leading-relaxed">Kami memberikan detail perawatan terbaik, menggunakan alat dan bahan premium untuk hasil sempurna.</p>
+            <div class="bg-olive-50 dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-transparent dark:border-gray-700">
+                <h4 class="text-sm font-bold border-b border-gray-200 dark:border-gray-700 pb-2 mb-3"><?= trans('benefit_2_title') ?></h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed"><?= trans('benefit_2_desc') ?></p>
             </div>
-            <div>
-                <h4 class="text-sm font-bold border-b border-gray-200 pb-2 mb-3">Produk Berkualitas</h4>
-                <p class="text-xs text-gray-500 leading-relaxed">Hanya menggunakan bahan berkualitas untuk melindungi cat dan material kendaraan Anda.</p>
+            <div class="bg-olive-50 dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-transparent dark:border-gray-700">
+                <h4 class="text-sm font-bold border-b border-gray-200 dark:border-gray-700 pb-2 mb-3"><?= trans('benefit_3_title') ?></h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed"><?= trans('benefit_3_desc') ?></p>
             </div>
-            <div>
-                <h4 class="text-sm font-bold border-b border-gray-200 pb-2 mb-3">Tim Profesional</h4>
-                <p class="text-xs text-gray-500 leading-relaxed">Tim ahli kami menjamin hasil yang andal, tanpa cacat, dan luar biasa setiap saat.</p>
+            <div class="bg-olive-50 dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-transparent dark:border-gray-700">
+                <h4 class="text-sm font-bold border-b border-gray-200 dark:border-gray-700 pb-2 mb-3"><?= trans('benefit_4_title') ?></h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed"><?= trans('benefit_4_desc') ?></p>
             </div>
         </div>
 
@@ -63,68 +63,68 @@
 </section>
 
 <!-- Why Choose CrystalWash Section -->
-<section id="service" class="py-24 bg-gray-50">
+<section id="service" class="py-24 bg-gray-50 dark:bg-slate-800 transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-            <h2 class="text-3xl font-serif font-bold mb-6">Mengapa Memilih CrystalWash?</h2>
-            <button class="bg-olive-100 text-olive-800 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider mb-12">
-                Lihat Layanan Kami
+            <h2 class="text-3xl font-serif font-bold mb-6"><?= trans('service_title') ?></h2>
+            <button class="bg-olive-100 dark:bg-olive-900 text-olive-800 dark:text-olive-200 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider mb-12 border dark:border-olive-700">
+                <?= trans('service_btn') ?>
             </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-[1px] bg-gray-200 border border-gray-200 rounded-xl overflow-hidden">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Cuci Dasar -->
-            <div class="bg-white p-8">
-                <h3 class="text-lg font-bold text-center mb-6">Cuci Dasar</h3>
-                <ul class="space-y-3 text-sm text-gray-600">
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Cuci eksterior</li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Semir ban</li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Proses pengeringan</li>
+            <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <h3 class="text-lg font-bold text-center mb-6 text-gray-900 dark:text-gray-100"><?= trans('srv_1_title') ?></h3>
+                <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_1_l1') ?></li>
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_1_l2') ?></li>
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_1_l3') ?></li>
                 </ul>
             </div>
             <!-- Cuci Penuh -->
-            <div class="bg-white p-8">
-                <h3 class="text-lg font-bold text-center mb-6">Cuci Penuh</h3>
-                <ul class="space-y-3 text-sm text-gray-600">
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Vakum eksterior & interior penuh</li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Pembersihan mendalam kaca & jendela</li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Detailing ban dan velg</li>
+            <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <h3 class="text-lg font-bold text-center mb-6 text-gray-900 dark:text-gray-100"><?= trans('srv_2_title') ?></h3>
+                <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_2_l1') ?></li>
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_2_l2') ?></li>
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_2_l3') ?></li>
                 </ul>
             </div>
             <!-- Detail Interior -->
-            <div class="bg-white p-8">
-                <h3 class="text-lg font-bold text-center mb-6">Detail Interior</h3>
-                <ul class="space-y-3 text-sm text-gray-600">
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Vakum mendalam dan sampo</li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Perawatan dashboard & panel</li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Perawatan penghilang bau</li>
+            <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <h3 class="text-lg font-bold text-center mb-6 text-gray-900 dark:text-gray-100"><?= trans('srv_3_title') ?></h3>
+                <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_3_l1') ?></li>
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_3_l2') ?></li>
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_3_l3') ?></li>
                 </ul>
             </div>
             <!-- Detail Mesin -->
-            <div class="bg-white p-8">
-                <h3 class="text-lg font-bold text-center mb-6">Detail Mesin</h3>
-                <ul class="space-y-3 text-sm text-gray-600">
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Pembersihan ruang mesin</li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Cuci tekanan aman</li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Perawatan & perlindungan plastik</li>
+            <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <h3 class="text-lg font-bold text-center mb-6 text-gray-900 dark:text-gray-100"><?= trans('srv_4_title') ?></h3>
+                <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_4_l1') ?></li>
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_4_l2') ?></li>
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_4_l3') ?></li>
                 </ul>
             </div>
             <!-- Cuci Kilat -->
-            <div class="bg-white p-8">
-                <h3 class="text-lg font-bold text-center mb-6">Cuci Kilat</h3>
-                <ul class="space-y-3 text-sm text-gray-600">
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Layanan cepat 15 menit</li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Proses busa tanpa sentuhan</li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Sistem pengeringan blower udara</li>
+            <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <h3 class="text-lg font-bold text-center mb-6 text-gray-900 dark:text-gray-100"><?= trans('srv_5_title') ?></h3>
+                <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_5_l1') ?></li>
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_5_l2') ?></li>
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_5_l3') ?></li>
                 </ul>
             </div>
             <!-- Cuci Ramah Lingkungan -->
-            <div class="bg-white p-8">
-                <h3 class="text-lg font-bold text-center mb-6">Cuci Eco</h3>
-                <ul class="space-y-3 text-sm text-gray-600">
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Sistem cuci tanpa air</li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Produk premium yang dapat terurai</li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> Proses ramah lingkungan</li>
+            <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <h3 class="text-lg font-bold text-center mb-6 text-gray-900 dark:text-gray-100"><?= trans('srv_6_title') ?></h3>
+                <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_6_l1') ?></li>
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_6_l2') ?></li>
+                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_6_l3') ?></li>
                 </ul>
             </div>
         </div>
@@ -132,7 +132,7 @@
 </section>
 
 <!-- Bottom Image Showcase -->
-<section class="py-12 bg-white">
+<section class="py-12 bg-white dark:bg-slate-900 transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="w-full h-[300px] md:h-[500px] overflow-hidden rounded-3xl shadow-xl">
             <img src="assets/img/showcase_moto.png" alt="Motorcycle foam wash" class="w-full h-full object-cover">
@@ -141,11 +141,11 @@
 </section>
 
 <!-- CTA Section -->
-<section class="py-24 bg-white text-center">
+<section class="py-32 bg-white dark:bg-slate-900 text-center transition-colors duration-300">
     <div class="max-w-3xl mx-auto px-4">
-        <h2 class="text-3xl md:text-4xl font-serif font-bold mb-4">Siap Membuat Kendaraan Anda Bersinar?</h2>
-        <p class="text-gray-500 text-sm mb-10">Tim kami siap memberikan yang terbaik untuk mobil atau motor anda.</p>
-        <a href="index.php?page=checkout" class="btn-primary">Pesan Sekarang!</a>
+        <h2 class="text-3xl md:text-4xl font-serif font-bold mb-4"><?= trans('cta_title') ?></h2>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mb-10"><?= trans('cta_desc') ?></p>
+        <a href="index.php?page=checkout" class="btn-primary"><?= trans('cta_btn') ?></a>
     </div>
 </section>
 

@@ -28,12 +28,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($new_status === 'in_progress') {
                 $stmt = $conn->prepare("UPDATE antrian SET status = 'proses' WHERE id_booking = :id_booking");
                 $stmt->execute(['id_booking' => $id_booking]);
+                $_SESSION['sweetalert_success'] = 'Proses booking berhasil dimulai!';
             } elseif ($new_status === 'completed') {
                 $stmt = $conn->prepare("UPDATE antrian SET status = 'selesai' WHERE id_booking = :id_booking");
                 $stmt->execute(['id_booking' => $id_booking]);
+                $_SESSION['sweetalert_success'] = 'Booking berhasil diselesaikan!';
             }
         } catch (PDOException $e) {
-            // handle error
+            $_SESSION['sweetalert_error'] = 'Terjadi kesalahan pada sistem.';
         }
     }
 }

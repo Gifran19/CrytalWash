@@ -49,7 +49,7 @@ $total = $price + $admin_fee;
 </head>
 <body class="bg-gray-100 font-sans min-h-screen flex items-center justify-center p-4 md:p-8">
 
-    <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden print-shadow-none border border-gray-100 relative pb-24">
+    <div class="bg-white w-full max-w-3xl rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] overflow-hidden print-shadow-none relative pb-24">
         
         <!-- Top Header Bar -->
         <div class="bg-olive-700 px-10 py-6 flex justify-between items-center">
@@ -72,12 +72,14 @@ $total = $price + $admin_fee;
         <div class="px-8 md:px-12 space-y-6">
             
             <!-- INFORMASI PELANGGAN -->
-            <div class="border border-gray-200 rounded-2xl p-6">
-                <div class="flex items-center space-x-3 mb-4">
-                    <svg class="w-6 h-6 text-olive-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <div class="border border-gray-100 rounded-2xl p-8 shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="flex items-center space-x-4 mb-6">
+                    <div class="bg-olive-50 p-2.5 rounded-xl">
+                        <svg class="w-6 h-6 text-olive-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    </div>
                     <h3 class="font-bold text-gray-900 tracking-wide text-sm">INFORMASI PELANGGAN</h3>
                 </div>
-                <div class="grid grid-cols-3 gap-4 text-sm">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
                     <div>
                         <p class="text-gray-500 text-xs mb-1">Name</p>
                         <p class="font-semibold text-gray-900"><?= htmlspecialchars($name) ?></p>
@@ -94,9 +96,11 @@ $total = $price + $admin_fee;
             </div>
 
             <!-- DETAIL LAYANAN -->
-            <div class="border border-gray-200 rounded-2xl p-6">
-                <div class="flex items-center space-x-3 mb-4">
-                    <svg class="w-6 h-6 text-olive-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+            <div class="border border-gray-100 rounded-2xl p-8 shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="flex items-center space-x-4 mb-6">
+                    <div class="bg-olive-50 p-2.5 rounded-xl">
+                        <svg class="w-6 h-6 text-olive-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    </div>
                     <h3 class="font-bold text-gray-900 tracking-wide text-sm">DETAIL LAYANAN</h3>
                 </div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -120,9 +124,11 @@ $total = $price + $admin_fee;
             </div>
 
             <!-- DETAIL PEMBAYARAN -->
-            <div class="border border-gray-200 rounded-2xl p-6">
-                <div class="flex items-center space-x-3 mb-4">
-                    <svg class="w-6 h-6 text-olive-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+            <div class="border border-gray-100 rounded-2xl p-8 shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="flex items-center space-x-4 mb-6">
+                    <div class="bg-olive-50 p-2.5 rounded-xl">
+                        <svg class="w-6 h-6 text-olive-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                    </div>
                     <h3 class="font-bold text-gray-900 tracking-wide text-sm">DETAIL PEMBAYARAN</h3>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -138,11 +144,13 @@ $total = $price + $admin_fee;
             </div>
 
             <!-- RINCIAN BIAYA -->
-            <div class="border border-gray-200 rounded-2xl p-6 relative overflow-hidden">
-                <div class="absolute right-0 top-0 w-32 h-32 bg-olive-50 rounded-full -mr-10 -mt-10 opacity-50"></div>
+            <div class="border border-olive-100 bg-gradient-to-br from-white to-olive-50/50 rounded-2xl p-8 relative overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+                <div class="absolute right-0 top-0 w-40 h-40 bg-olive-100 rounded-full -mr-16 -mt-16 opacity-40"></div>
                 
-                <div class="flex items-center space-x-3 mb-6 relative z-10">
-                    <svg class="w-6 h-6 text-olive-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                <div class="flex items-center space-x-4 mb-6 relative z-10">
+                    <div class="bg-white p-2.5 rounded-xl shadow-sm">
+                        <svg class="w-6 h-6 text-olive-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                    </div>
                     <h3 class="font-bold text-gray-900 tracking-wide text-sm">RINCIAN BIAYA</h3>
                 </div>
                 
@@ -168,7 +176,7 @@ $total = $price + $admin_fee;
 
         <!-- Aesthetic Footer Wave & Back Button -->
         <div class="absolute bottom-0 left-0 w-full h-24 bg-olive-700 rounded-tr-[5rem] flex items-center justify-end px-10 no-print">
-            <a href="index.php?page=finish" class="bg-white text-olive-800 font-bold px-8 py-3 rounded-full hover:bg-gray-100 transition-colors shadow-lg text-sm">
+            <a href="index.php?page=finish" class="bg-white text-olive-800 font-bold px-8 py-3 rounded-full hover:-translate-y-0.5 transition-all duration-300 shadow-md hover:shadow-lg text-sm">
                 Kembali
             </a>
         </div>

@@ -13,220 +13,58 @@ $success = $_GET['success'] ?? null;
 ?>
 <?php include BASE_PATH . '/app/Views/layouts/header.php'; ?>
 
-<style>
-    .login-wrapper {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #8a9a6d;
-        padding: 2rem;
-    }
-
-    .login-card {
-        max-width: 820px;
-        width: 100%;
-        background: #f5f5f0;
-        border-radius: 1rem;
-        overflow: hidden;
-        box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-    }
-
-    /* Header Bar */
-    .login-header {
-        background-color: #3d4a2e;
-        padding: 1rem 2rem;
-    }
-    .login-header h2 {
-        font-family: 'Playfair Display', serif;
-        color: #fff;
-        font-size: 1.4rem;
-        font-weight: 700;
-        margin: 0;
-        letter-spacing: -0.02em;
-    }
-
-    /* Body */
-    .login-body {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-    }
-
-    /* Left Form */
-    .login-form-section {
-        padding: 2.5rem 2rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-    .login-form-section h1 {
-        font-family: 'Playfair Display', serif;
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: #1a1a1a;
-        margin: 0 0 0.4rem;
-    }
-    .login-form-section .subtitle {
-        font-family: 'Inter', sans-serif;
-        font-size: 0.8rem;
-        color: #7a7a6e;
-        margin: 0 0 2rem;
-    }
-    .login-form-section label {
-        display: block;
-        font-family: 'Inter', sans-serif;
-        font-size: 0.8rem;
-        font-weight: 500;
-        color: #333;
-        margin-bottom: 0.5rem;
-    }
-    .login-form-section input[type="text"],
-    .login-form-section input[type="password"] {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        border: 1.5px solid #c5c5b8;
-        border-radius: 0.5rem;
-        background: #fff;
-        font-family: 'Inter', sans-serif;
-        font-size: 0.9rem;
-        color: #333;
-        margin-bottom: 1.25rem;
-        transition: border-color 0.2s, box-shadow 0.2s;
-        box-sizing: border-box;
-    }
-    .login-form-section input[type="text"]:focus,
-    .login-form-section input[type="password"]:focus {
-        outline: none;
-        border-color: #6b7f4a;
-        box-shadow: 0 0 0 3px rgba(107, 127, 74, 0.15);
-    }
-    .login-btn {
-        width: 100%;
-        padding: 0.8rem;
-        background-color: #6b7f4a;
-        color: #fff;
-        border: none;
-        border-radius: 0.5rem;
-        font-family: 'Inter', sans-serif;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.3s, transform 0.15s;
-        margin-top: 0.5rem;
-    }
-    .login-btn:hover {
-        background-color: #5a6c3e;
-    }
-    .login-btn:active {
-        transform: scale(0.98);
-    }
-
-    /* Right Image */
-    .login-image-section {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        min-height: 400px;
-    }
-    .login-image-section img {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    .login-image-caption {
-        position: relative;
-        z-index: 1;
-        background: rgba(255,255,255,0.88);
-        padding: 1rem 1.5rem;
-        margin: 1rem;
-        border-radius: 0.5rem;
-    }
-    .login-image-caption p {
-        font-family: 'Playfair Display', serif;
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #1a1a1a;
-        margin: 0;
-        line-height: 1.2;
-    }
-
-    /* Alert Messages */
-    .login-alert {
-        padding: 0.65rem 1rem;
-        border-radius: 0.5rem;
-        font-size: 0.8rem;
-        font-family: 'Inter', sans-serif;
-        margin-bottom: 1.25rem;
-    }
-    .login-alert-error {
-        background-color: #fee2e2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
-    }
-    .login-alert-success {
-        background-color: #dcfce7;
-        color: #166534;
-        border: 1px solid #bbf7d0;
-    }
-
-    /* Responsive */
-    @media (max-width: 700px) {
-        .login-body {
-            grid-template-columns: 1fr;
-        }
-        .login-image-section {
-            min-height: 220px;
-            order: -1;
-        }
-    }
-</style>
-
-<div class="login-wrapper">
-    <div class="login-card">
-        <!-- Header Bar -->
-        <div class="login-header">
-            <h2>CrystalWash</h2>
-        </div>
-
-        <!-- Body -->
-        <div class="login-body">
-            <!-- Left: Form -->
-            <div class="login-form-section">
-                <h1>Welcome to CrystalWash</h1>
-                <p class="subtitle">Please enter your username and password</p>
-
-                <?php if ($error === 'invalid'): ?>
-                    <div class="login-alert login-alert-error">Username atau password salah.</div>
-                <?php elseif ($error === 'empty'): ?>
-                    <div class="login-alert login-alert-error">Mohon isi username dan password.</div>
-                <?php endif; ?>
-
-                <?php if ($success === 'logout'): ?>
-                    <div class="login-alert login-alert-success">Anda telah berhasil logout.</div>
-                <?php endif; ?>
-
-                <form action="index.php?action=admin_login" method="POST" id="loginForm">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" autocomplete="username" required>
-
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" autocomplete="current-password" required>
-
-                    <button type="submit" class="login-btn">Login</button>
-                </form>
+<div class="min-h-screen flex items-center justify-center bg-olive-50 dark:bg-slate-900 p-4 transition-colors duration-300">
+    <div class="flex w-full max-w-4xl bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden border border-transparent dark:border-gray-700">
+        
+        <!-- Left: Form -->
+        <div class="w-full md:w-1/2 p-10 md:p-14 flex flex-col justify-center">
+            <div class="mb-8">
+                <h1 class="font-serif text-3xl lg:text-4xl font-bold text-olive-700 dark:text-olive-400 mb-2"><?= trans('admin_login_welcome') ?> CrystalWash</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400"><?= trans('admin_login_desc') ?></p>
             </div>
 
-            <!-- Right: Image -->
-            <div class="login-image-section">
-                <img src="assets/img/login_car_wash.png" alt="Car Wash">
-                <div class="login-image-caption">
-                    <p>Clean Car, Happy Life</p>
+            <?php if ($error === 'invalid'): ?>
+                <div class="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm mb-6 border border-red-200 dark:border-red-800 flex items-start">
+                    <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <?= trans('admin_login_err_invalid') ?>
                 </div>
-            </div>
+            <?php elseif ($error === 'empty'): ?>
+                <div class="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm mb-6 border border-red-200 dark:border-red-800 flex items-start">
+                    <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <?= trans('admin_login_err_empty') ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($success === 'logout'): ?>
+                <div class="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 p-4 rounded-xl flex items-center gap-2 mb-6 text-sm">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <?= trans('admin_login_success_out') ?>
+                </div>
+            <?php endif; ?>
+
+            <form action="index.php?action=admin_login" method="POST" id="loginForm">
+                <div class="mb-4">
+                    <label for="username" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1"><?= trans('admin_login_username') ?></label>
+                    <input type="text" id="username" name="username" autocomplete="username" required
+                        class="w-full border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 dark:text-white rounded-xl p-4 mt-2 focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-olive-400 focus:outline-none transition-all">
+                </div>
+
+                <div class="mb-6">
+                    <label for="password" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1"><?= trans('admin_login_password') ?></label>
+                    <input type="password" id="password" name="password" autocomplete="current-password" required
+                        class="w-full border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 dark:text-white rounded-xl p-4 mt-2 focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-olive-400 focus:outline-none transition-all">
+                </div>
+
+                <button type="submit" class="w-full bg-olive-700 text-white font-bold text-lg py-4 rounded-xl hover:bg-olive-800 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300"><?= trans('admin_login_btn') ?></button>
+            </form>
         </div>
+
+        <!-- Right: Image -->
+        <div class="hidden md:block w-1/2 relative">
+            <img src="assets/img/login_car_wash.png" alt="Car Wash" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
+        </div>
+
     </div>
 </div>
 

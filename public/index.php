@@ -5,6 +5,14 @@ session_start();
 // Define BASE_PATH for easier includes
 define('BASE_PATH', dirname(__DIR__));
 
+// Handle language switch
+if (isset($_GET['lang']) && in_array($_GET['lang'], ['id', 'en'])) {
+    $_SESSION['lang'] = $_GET['lang'];
+}
+
+// Load helper functions
+require_once BASE_PATH . '/app/Helpers/functions.php';
+
 // Route Actions (POST/Redirects)
 $action = $_GET['action'] ?? null;
 if ($action) {
@@ -17,7 +25,7 @@ if ($action) {
 
 // Route Pages (Views)
 $page = $_GET['page'] ?? 'home';
-$allowed_pages = ['home', 'checkout', 'work_progress', 'review', 'finish', 'invoice', 'login', 'admin_dashboard'];
+$allowed_pages = ['home', 'checkout', 'work_progress', 'review', 'finish', 'invoice', 'login', 'admin_dashboard', 'qris_checkout'];
 
 if (in_array($page, $allowed_pages)) {
     require_once BASE_PATH . "/app/Views/pages/{$page}.php";

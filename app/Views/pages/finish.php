@@ -9,8 +9,8 @@ $hide_navbar = true; // Sembunyikan navbar global
 <!-- Banner Section -->
 <div class="relative w-full h-[250px] flex items-center justify-center overflow-hidden">
     <img src="assets/img/benefit_wash.png" alt="Finished" class="absolute inset-0 w-full h-full object-cover">
-    <div class="absolute inset-0 bg-white/70"></div> <!-- Make overlay lighter -->
-    <h1 class="relative z-10 text-5xl md:text-6xl text-black font-sans font-semibold tracking-tight">Booking Berhasil</h1>
+    <div class="absolute inset-0 bg-olive-900/60 mix-blend-multiply"></div>
+    <h1 class="relative z-10 text-5xl md:text-6xl text-white font-serif font-bold tracking-tight">Booking Berhasil</h1>
 </div>
 
 <div class="max-w-3xl mx-auto px-4 py-16">
@@ -37,18 +37,18 @@ $hide_navbar = true; // Sembunyikan navbar global
     </div>
 
     <!-- Success Message Card -->
-    <div class="bg-white rounded-[1.5rem] border border-gray-400 p-10 md:p-14 shadow-sm">
-        <h2 class="font-sans text-3xl md:text-4xl font-bold text-black mb-10 mt-4">Layanan Selesai !</h2>
+    <div class="bg-white rounded-2xl border border-gray-100 p-12 md:p-16 shadow-xl text-center max-w-2xl mx-auto">
+        <h2 class="font-serif text-3xl md:text-4xl font-bold text-gray-900 mb-6">Layanan Selesai !</h2>
         
-        <p class="text-[15px] font-serif text-black mb-5">Terimakasih telah menggunakan layanan kami.</p>
-        <p class="text-[15px] font-serif text-black mb-14">Kami tunggu pesanan Anda berikutnya.</p>
+        <p class="text-base font-sans text-gray-600 mb-2">Terima kasih telah menggunakan layanan kami.</p>
+        <p class="text-base font-sans text-gray-600 mb-12">Kami tunggu kedatangan Anda berikutnya.</p>
         
         <!-- Buttons -->
-        <div class="flex flex-col sm:flex-row gap-5 max-w-lg mt-8">
-            <a href="index.php?page=home" class="w-full sm:w-1/2 bg-olive-700 text-white font-bold py-3.5 rounded-2xl hover:bg-olive-800 transition-colors text-center shadow-sm">
+        <div class="flex flex-col sm:flex-row gap-5 max-w-lg mx-auto mt-8">
+            <a href="index.php?page=home" class="w-full sm:w-1/2 btn-primary text-lg">
                 Home
             </a>
-            <a href="index.php?page=invoice" class="w-full sm:w-1/2 bg-white border border-olive-700 text-olive-700 font-bold py-3.5 rounded-2xl hover:bg-olive-50 transition-colors shadow-sm flex items-center justify-center">
+            <a href="index.php?page=invoice" class="w-full sm:w-1/2 btn-secondary text-lg">
                 Cetak Invoice
             </a>
         </div>

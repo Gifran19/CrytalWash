@@ -20,24 +20,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
     }
 
+    // Validasi input metode
+    if (!in_array($method, ['Cash', 'QRIS'])) {
+        header("Location: index.php?page=checkout&step=4&error=invalid_method");
+        exit();
+    }
+
     // Tentukan status pembayaran berdasarkan metode
     $payment_status = 'unpaid';
-    $transaction_prefix = 'COD';
-
-    if ($method == 'Credit') {
-        $card_number = cleanInput($_POST['card_number'] ?? '');
-        if (strlen(str_replace(' ', '', $card_number)) < 16) {
-            header("Location: index.php?page=checkout&step=4&error=invalid_card");
-            exit();
-        }
-        $payment_status = 'paid';
-        $transaction_prefix = 'TRX';
-    } elseif ($method == 'Ewallet') {
-        $provider = cleanInput($_POST['ewallet_provider'] ?? 'QRIS');
-        $payment_status = 'paid';
-        $transaction_prefix = 'EWL';
-        $_SESSION['order']['payment_detail'] = $provider;
-    }
+    $transaction_prefix = ($method === 'QRIS') ? 'QRS' : 'CSH';
 
     // Definisikan durasi estimasi berdasarkan layanan
     $service_durations = [
@@ -116,8 +107,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['order']['transaction_id']  = $transaction_prefix . '-' . strtoupper(uniqid());
         $_SESSION['order']['estimasi_waktu']  = $estimasi;
 
-        // Redirect ke halaman booking berhasil
-        header("Location: index.php?action=process_order");
+        // Redirect ke halaman selanjutnya
+        if ($method === 'QRIS') {
+            header("Location: index.php?page=qris_checkout&id_booking=" . $id_booking);
+        } else {
+            header("Location: index.php?action=process_order");
+        }
         exit();
 
     } catch (PDOException $e) {
