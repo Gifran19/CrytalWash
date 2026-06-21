@@ -2,7 +2,7 @@
   [PENTING] 
   Proyek ini menggunakan Tailwind CSS via NPM. 
   Pastikan Anda menjalankan perintah berikut di terminal (command line) untuk mengkompilasi file CSS:
-  npx tailwindcss -i ./src/css/input.css -o ./assets/css/style.css --watch
+  npx tailwindcss -i ./src/css/input.css -o ./public/assets/css/style.css --watch
 -->
 <!DOCTYPE html>
 <html lang="id" class="scroll-smooth">
