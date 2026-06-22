@@ -65,11 +65,29 @@ if ($current_section === 'beranda') {
     }
 }
 
-$chart_monthly_labels = json_encode(array_map(function($r) {
-    $dt = DateTime::createFromFormat('Y-m', $r['bulan']);
-    return $dt ? $dt->format('M Y') : $r['bulan'];
-}, $monthly_revenue));
-$chart_monthly_values = json_encode(array_map(fn($r) => (int)$r['total'], $monthly_revenue));
+// Generate last 6 months to ensure chart always has data points
+$last_6_months = [];
+for ($i = 5; $i >= 0; $i--) {
+    $last_6_months[date('Y-m', strtotime("-$i months"))] = 0;
+}
+
+// Fill with actual data if available
+foreach ($monthly_revenue as $row) {
+    if (isset($last_6_months[$row['bulan']])) {
+        $last_6_months[$row['bulan']] = (int)$row['total'];
+    }
+}
+
+$chart_monthly_labels_array = [];
+$chart_monthly_values_array = [];
+foreach ($last_6_months as $bulan => $total) {
+    $dt = DateTime::createFromFormat('Y-m', $bulan);
+    $chart_monthly_labels_array[] = $dt ? $dt->format('M Y') : $bulan;
+    $chart_monthly_values_array[] = $total;
+}
+
+$chart_monthly_labels = json_encode($chart_monthly_labels_array);
+$chart_monthly_values = json_encode($chart_monthly_values_array);
 
 // ======= Fetch data for BOOKING section =======
 $bookings = [];

@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($method === 'QRIS') {
             header("Location: index.php?page=qris_checkout&id_booking=" . $id_booking);
         } else {
-            header("Location: index.php?action=process_order");
+            header("Location: index.php?page=finish");
         }
         exit();
 

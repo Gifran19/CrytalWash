@@ -48,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // Arahkan ke halaman selesai
-    header("Location: index.php?page=finish");
+    // Arahkan ke halaman Cetak Invoice atau Home setelah selesai
+    header("Location: index.php?page=invoice");
     exit();
 }
 ?>

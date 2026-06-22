@@ -83,9 +83,9 @@
                         <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                     </button>
                     
-                    <a href="index.php?page=login" class="hidden md:inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-olive-700 hover:bg-olive-800 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+                    <button id="openLoginBtn" class="hidden md:inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-olive-700 hover:bg-olive-800 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md cursor-pointer">
                         <?= trans('nav_login') ?>
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
