@@ -87,6 +87,7 @@ model booking {
   transaksi  transaksi?
   invoice    invoice?
   feedback   feedback?
+  booking_petugas booking_petugas[]
 }
 
 // ===========================================================
@@ -152,4 +153,30 @@ model feedback {
   id_booking  Int      @unique
 
   booking booking @relation(fields: [id_booking], references: [id_booking])
+}
+
+// ===========================================================
+// Model: Petugas (Washer)
+// ===========================================================
+model petugas {
+  id_petugas Int      @id @default(autoincrement())
+  nama       String   @db.VarChar(100)
+  no_hp      String?  @db.VarChar(20)
+  status     String   @default("aktif") @db.VarChar(20) // aktif, nonaktif
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  booking_petugas booking_petugas[]
+}
+
+// ===========================================================
+// Model: Booking Petugas
+// ===========================================================
+model booking_petugas {
+  id_booking Int
+  id_petugas Int
+
+  booking booking @relation(fields: [id_booking], references: [id_booking], onDelete: Cascade)
+  petugas petugas @relation(fields: [id_petugas], references: [id_petugas], onDelete: Cascade)
+
+  @@id([id_booking, id_petugas])
 }

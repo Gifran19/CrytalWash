@@ -47,23 +47,45 @@ if ($error === 'duplicate_plat'): ?>
     <!-- Vehicle Type -->
     <div>
         <label class="text-xs uppercase font-semibold text-gray-600 dark:text-gray-400 tracking-wider mb-3 block">Tipe Kendaraan</label>
-        <div class="flex space-x-4">
-            <label class="relative w-1/2 cursor-pointer group">
-                <input type="radio" name="tipe" value="Car" checked class="peer sr-only">
-                <div class="w-full p-4 border border-gray-200 dark:border-gray-700 rounded-xl flex items-center transition-all duration-300 peer-checked:border-olive-700 dark:peer-checked:border-olive-500 peer-checked:ring-2 peer-checked:ring-olive-400 peer-checked:bg-olive-50 dark:peer-checked:bg-gray-800/80 bg-white dark:bg-gray-800 shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5">
-                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 mr-3 flex items-center justify-center peer-checked:border-olive-700 dark:peer-checked:border-olive-500">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Mobil Kecil -->
+            <label class="relative cursor-pointer group">
+                <input type="radio" name="tipe" value="Mobil Kecil" checked class="peer sr-only">
+                <div class="h-full p-4 border border-gray-200 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center transition-all duration-300 peer-checked:border-olive-700 dark:peer-checked:border-olive-500 peer-checked:ring-2 peer-checked:ring-olive-400 peer-checked:bg-olive-50 dark:peer-checked:bg-gray-800/80 bg-white dark:bg-gray-800 shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5">
+                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 mb-2 flex items-center justify-center peer-checked:border-olive-700 dark:peer-checked:border-olive-500">
                         <div class="w-2.5 h-2.5 rounded-full bg-olive-700 dark:bg-olive-500 hidden peer-checked:block"></div>
                     </div>
-                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">Mobil</span>
+                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200 text-center">Mobil Kecil</span>
                 </div>
             </label>
-            <label class="relative w-1/2 cursor-pointer group">
-                <input type="radio" name="tipe" value="Motorcycle" class="peer sr-only">
-                <div class="w-full p-4 border border-gray-200 dark:border-gray-700 rounded-xl flex items-center transition-all duration-300 peer-checked:border-olive-700 dark:peer-checked:border-olive-500 peer-checked:ring-2 peer-checked:ring-olive-400 peer-checked:bg-olive-50 dark:peer-checked:bg-gray-800/80 bg-white dark:bg-gray-800 shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5">
-                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 mr-3 flex items-center justify-center peer-checked:border-olive-700 dark:peer-checked:border-olive-500">
+            <!-- Mobil Sedang -->
+            <label class="relative cursor-pointer group">
+                <input type="radio" name="tipe" value="Mobil Sedang" class="peer sr-only">
+                <div class="h-full p-4 border border-gray-200 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center transition-all duration-300 peer-checked:border-olive-700 dark:peer-checked:border-olive-500 peer-checked:ring-2 peer-checked:ring-olive-400 peer-checked:bg-olive-50 dark:peer-checked:bg-gray-800/80 bg-white dark:bg-gray-800 shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5">
+                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 mb-2 flex items-center justify-center peer-checked:border-olive-700 dark:peer-checked:border-olive-500">
                         <div class="w-2.5 h-2.5 rounded-full bg-olive-700 dark:bg-olive-500 hidden peer-checked:block"></div>
                     </div>
-                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">Motor</span>
+                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200 text-center">Mobil Sedang</span>
+                </div>
+            </label>
+            <!-- Mobil Besar -->
+            <label class="relative cursor-pointer group">
+                <input type="radio" name="tipe" value="Mobil Besar" class="peer sr-only">
+                <div class="h-full p-4 border border-gray-200 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center transition-all duration-300 peer-checked:border-olive-700 dark:peer-checked:border-olive-500 peer-checked:ring-2 peer-checked:ring-olive-400 peer-checked:bg-olive-50 dark:peer-checked:bg-gray-800/80 bg-white dark:bg-gray-800 shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5">
+                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 mb-2 flex items-center justify-center peer-checked:border-olive-700 dark:peer-checked:border-olive-500">
+                        <div class="w-2.5 h-2.5 rounded-full bg-olive-700 dark:bg-olive-500 hidden peer-checked:block"></div>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200 text-center">Mobil Besar</span>
+                </div>
+            </label>
+            <!-- Motor -->
+            <label class="relative cursor-pointer group">
+                <input type="radio" name="tipe" value="Motor" class="peer sr-only">
+                <div class="h-full p-4 border border-gray-200 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center transition-all duration-300 peer-checked:border-olive-700 dark:peer-checked:border-olive-500 peer-checked:ring-2 peer-checked:ring-olive-400 peer-checked:bg-olive-50 dark:peer-checked:bg-gray-800/80 bg-white dark:bg-gray-800 shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5">
+                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 mb-2 flex items-center justify-center peer-checked:border-olive-700 dark:peer-checked:border-olive-500">
+                        <div class="w-2.5 h-2.5 rounded-full bg-olive-700 dark:bg-olive-500 hidden peer-checked:block"></div>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200 text-center">Motor</span>
                 </div>
             </label>
         </div>

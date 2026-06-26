@@ -126,18 +126,38 @@ if ($current_section === 'transaksi') {
     } catch (PDOException $e) {}
 }
 
-// Laporan summary
+// Laporan detail per bulan
 $laporan = [];
+$filter_month = $_GET['month'] ?? date('Y-m');
+$search = $_GET['search'] ?? '';
+
 if ($current_section === 'laporan') {
     try {
-        $stmt = $conn->query("SELECT DATE(b.tanggal) as tgl, COUNT(*) as total_booking,
-                SUM(py.total) as total_pendapatan
+        $query = "SELECT t.id_transaksi, b.tanggal, p.nama as pelanggan, k.no_plat, k.jenis, l.nama_layanan, py.total, py.metode,
+                  (SELECT STRING_AGG(pt.nama, ', ') FROM booking_petugas bp JOIN petugas pt ON bp.id_petugas = pt.id_petugas WHERE bp.id_booking = b.id_booking) as petugas
             FROM booking b
+            JOIN pelanggan p ON b.id_pelanggan = p.id_pelanggan
+            JOIN kendaraan k ON b.id_kendaraan = k.id_kendaraan
+            JOIN layanan l ON b.id_layanan = l.id_layanan
+            LEFT JOIN transaksi t ON b.id_booking = t.id_booking
             LEFT JOIN pembayaran py ON b.id_booking = py.id_booking
-            GROUP BY DATE(b.tanggal)
-            ORDER BY tgl DESC LIMIT 30");
+            WHERE b.status = 'completed' AND TO_CHAR(b.tanggal, 'YYYY-MM') = :month";
+        
+        $params = ['month' => $filter_month];
+
+        if (!empty($search)) {
+            $query .= " AND (p.nama ILIKE :search OR k.no_plat ILIKE :search)";
+            $params['search'] = '%' . $search . '%';
+        }
+
+        $query .= " ORDER BY b.tanggal DESC";
+
+        $stmt = $conn->prepare($query);
+        $stmt->execute($params);
         $laporan = $stmt->fetchAll();
-    } catch (PDOException $e) {}
+    } catch (PDOException $e) {
+        error_log($e->getMessage());
+    }
 }
 
 // Layanan management
@@ -161,6 +181,15 @@ if ($current_section === 'ulasan') {
             JOIN layanan l ON b.id_layanan = l.id_layanan
             ORDER BY f.tanggal DESC LIMIT 50");
         $ulasan_list = $stmt->fetchAll();
+    } catch (PDOException $e) {}
+}
+
+// Petugas management & selection
+$petugas_list = [];
+if ($current_section === 'petugas' || $current_section === 'beranda') {
+    try {
+        $stmt = $conn->query("SELECT id_petugas, nama, no_hp, status FROM petugas ORDER BY nama ASC");
+        $petugas_list = $stmt->fetchAll();
     } catch (PDOException $e) {}
 }
 
@@ -343,6 +372,7 @@ if ($current_section === 'ulasan') {
             <a href="index.php?page=admin_dashboard&section=beranda" class="sidebar-link <?= $current_section === 'beranda' ? 'active' : '' ?>"><?= trans('admin_nav_dashboard') ?></a>
             <a href="index.php?page=admin_dashboard&section=laporan" class="sidebar-link <?= $current_section === 'laporan' ? 'active' : '' ?>"><?= trans('admin_nav_reports') ?></a>
             <a href="index.php?page=admin_dashboard&section=layanan" class="sidebar-link <?= $current_section === 'layanan' ? 'active' : '' ?>"><?= trans('admin_nav_services') ?></a>
+            <a href="index.php?page=admin_dashboard&section=petugas" class="sidebar-link <?= $current_section === 'petugas' ? 'active' : '' ?>">Data Petugas</a>
             <a href="index.php?page=admin_dashboard&section=ulasan" class="sidebar-link <?= $current_section === 'ulasan' ? 'active' : '' ?>"><?= trans('admin_nav_reviews') ?></a>
         </nav>
     </aside>
@@ -358,6 +388,7 @@ if ($current_section === 'ulasan') {
                         if ($current_section === 'beranda') $section_title = trans('admin_nav_dashboard');
                         if ($current_section === 'laporan') $section_title = trans('admin_nav_reports');
                         if ($current_section === 'layanan') $section_title = trans('admin_nav_services');
+                        if ($current_section === 'petugas') $section_title = 'Data Petugas';
                         if ($current_section === 'ulasan') $section_title = trans('admin_nav_reviews');
                         if ($current_section === 'transaksi') $section_title = trans('admin_sec_transaction_list');
                         if ($current_section === 'booking') $section_title = trans('admin_sec_booking_list');
@@ -500,10 +531,9 @@ if ($current_section === 'ulasan') {
                     echo '<div class="empty-state">' . trans('admin_empty_booking_status') . ' ' . htmlspecialchars($status_label) . '.</div>';
                     return;
                 }
-                $show_action = ($status_key === 'pending' || $status_key === 'in_progress');
                 echo '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr>';
                 echo '<th>' . trans('admin_col_no') . '</th><th>' . trans('admin_col_date') . '</th><th>' . trans('admin_col_customer') . '</th><th>' . trans('admin_col_vehicle') . '</th><th>' . trans('admin_col_service') . '</th><th>' . trans('admin_col_queue') . '</th><th>' . trans('admin_col_status') . '</th>';
-                if ($show_action) echo '<th style="min-width:200px;">' . trans('admin_col_action') . '</th>';
+                echo '<th style="min-width:200px;">' . trans('admin_col_action') . '</th>';
                 echo '</tr></thead><tbody>';
                 foreach ($list as $i => $bk) {
                     echo '<tr>';
@@ -515,46 +545,44 @@ if ($current_section === 'ulasan') {
                     echo '<td>' . ($bk['nomor_antrian'] ?? '-') . '</td>';
                     echo '<td><span class="badge ' . $badge_class . '">' . htmlspecialchars($status_label) . '</span></td>';
 
-                    if ($show_action) {
-                        echo '<td>';
-                        if ($status_key === 'pending') {
-                            // Menunggu: hanya tombol Mulai Proses
-                            echo '<form method="POST" action="index.php?action=admin_update_status" style="display:inline;margin:0;" onsubmit="confirmMulaiProses(event, this);">';
-                            echo '<input type="hidden" name="id_booking" value="' . $bk['id_booking'] . '">';
-                            echo '<input type="hidden" name="new_status" value="in_progress">';
-                            echo '<button type="submit" style="background:#4f46e5;color:#fff;border:none;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.2s;" onmouseover="this.style.background=\'#4338ca\'" onmouseout="this.style.background=\'#4f46e5\'">▶ ' . trans('admin_action_start') . '</button>';
-                            echo '</form>';
-                        } elseif ($status_key === 'in_progress') {
-                            // Diproses: cek metode pembayaran
-                            $metode = $bk['pay_metode'] ?? '';
-                            $is_cod = (stripos($metode, 'cash') !== false || stripos($metode, 'tunai') !== false || stripos($metode, 'cod') !== false);
-                            $is_unpaid = (($bk['pay_status'] ?? '') === 'unpaid' || ($bk['pay_status'] ?? '') === 'pending');
+                    echo '<td>';
+                    if ($status_key === 'pending') {
+                        // Menunggu: tombol Mulai Proses (buka modal)
+                        echo '<button type="button" onclick="openMulaiProsesModal(' . $bk['id_booking'] . ', \'' . htmlspecialchars(addslashes($bk['no_plat'])) . '\')" style="background:#4f46e5;color:#fff;border:none;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.2s;" onmouseover="this.style.background=\'#4338ca\'" onmouseout="this.style.background=\'#4f46e5\'">▶ ' . trans('admin_action_start') . '</button>';
+                    } elseif ($status_key === 'in_progress') {
+                        // Diproses: cek metode pembayaran
+                        $metode = $bk['pay_metode'] ?? '';
+                        $is_cod = (stripos($metode, 'cash') !== false || stripos($metode, 'tunai') !== false || stripos($metode, 'cod') !== false);
+                        $is_unpaid = (($bk['pay_status'] ?? '') === 'unpaid' || ($bk['pay_status'] ?? '') === 'pending');
 
-                            if ($is_cod && $is_unpaid) {
-                                // COD/Tunai dan belum lunas → tombol Bayar (buka modal, sekaligus selesai)
-                                $btnData = htmlspecialchars(json_encode([
-                                    'id_booking' => $bk['id_booking'],
-                                    'nomor_antrian' => ($bk['nomor_antrian'] ? date('Y-m-d', strtotime($bk['tanggal'])) . '/' . $bk['nomor_antrian'] : '-'),
-                                    'nama' => $bk['nama'],
-                                    'no_plat' => $bk['no_plat'],
-                                    'jenis' => $bk['jenis'],
-                                    'nama_layanan' => $bk['nama_layanan'],
-                                    'no_nota' => $bk['id_transaksi'] ?? '-',
-                                    'tanggal' => date('d/m/Y', strtotime($bk['tanggal'])),
-                                    'total' => $bk['trx_total'] ?? $bk['harga']
-                                ]));
-                                echo '<button type="button" onclick="openPaymentModal(' . $btnData . ')" style="background:#4b5320;color:#fff;border:none;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;margin-right:0.5rem;transition:background 0.2s;" onmouseover="this.style.background=\'#3a4218\'" onmouseout="this.style.background=\'#4b5320\'">💰 ' . trans('admin_action_pay_finish') . '</button>';
-                            } else {
-                                // E-Wallet/Kartu atau sudah lunas → tombol Tandai Selesai
-                                echo '<form method="POST" action="index.php?action=admin_update_status" style="display:inline;margin:0;" onsubmit="confirmSelesaiProses(event, this);">';
-                                echo '<input type="hidden" name="id_booking" value="' . $bk['id_booking'] . '">';
-                                echo '<input type="hidden" name="new_status" value="completed">';
-                                echo '<button type="submit" style="background:#16a34a;color:#fff;border:none;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.2s;" onmouseover="this.style.background=\'#15803d\'" onmouseout="this.style.background=\'#16a34a\'">✓ ' . trans('admin_action_mark_finish') . '</button>';
-                                echo '</form>';
-                            }
+                        if ($is_cod && $is_unpaid) {
+                            // COD/Tunai dan belum lunas → tombol Bayar (buka modal, sekaligus selesai)
+                            $btnData = htmlspecialchars(json_encode([
+                                'id_booking' => $bk['id_booking'],
+                                'nomor_antrian' => ($bk['nomor_antrian'] ? date('Y-m-d', strtotime($bk['tanggal'])) . '/' . $bk['nomor_antrian'] : '-'),
+                                'nama' => $bk['nama'],
+                                'no_plat' => $bk['no_plat'],
+                                'jenis' => $bk['jenis'],
+                                'nama_layanan' => $bk['nama_layanan'],
+                                'no_nota' => $bk['id_transaksi'] ?? '-',
+                                'tanggal' => date('d/m/Y', strtotime($bk['tanggal'])),
+                                'total' => $bk['trx_total'] ?? $bk['harga']
+                            ]));
+                            echo '<button type="button" onclick="openPaymentModal(' . $btnData . ')" style="background:#4b5320;color:#fff;border:none;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;margin-right:0.5rem;transition:background 0.2s;" onmouseover="this.style.background=\'#3a4218\'" onmouseout="this.style.background=\'#4b5320\'">💰 ' . trans('admin_action_pay_finish') . '</button>';
+                        } else {
+                            // E-Wallet/Kartu atau sudah lunas → tombol Tandai Selesai
+                            echo '<form method="POST" action="index.php?action=admin_update_status" style="display:inline;margin:0;" onsubmit="confirmSelesaiProses(event, this);">';
+                            echo '<input type="hidden" name="id_booking" value="' . $bk['id_booking'] . '">';
+                            echo '<input type="hidden" name="new_status" value="completed">';
+                            echo '<button type="submit" style="background:#16a34a;color:#fff;border:none;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.2s;" onmouseover="this.style.background=\'#15803d\'" onmouseout="this.style.background=\'#16a34a\'">✓ ' . trans('admin_action_mark_finish') . '</button>';
+                            echo '</form>';
                         }
-                        echo '</td>';
+                    } else {
+                        // Selesai: Tampilkan tanda strip agar kolom tetap ada
+                        echo '<span style="color:#9ca3af;font-weight:600;">-</span>';
                     }
+                    echo '</td>';
+
                     echo '</tr>';
                 }
                 echo '</tbody></table></div>';
@@ -799,34 +827,88 @@ if ($current_section === 'ulasan') {
 
         <?php elseif ($current_section === 'laporan'): ?>
         <!-- ===== LAPORAN ===== -->
-        <div class="admin-card" id="print-area">
-            <div class="card-header">
-                <h3><?= trans('admin_sec_report_daily') ?></h3>
+        <div class="admin-card">
+            <div class="card-header print-hide">
+                <h3>Laporan Bulanan</h3>
                 <button onclick="window.print()" class="px-4 py-2 text-sm font-medium rounded print-hide" style="background:#5a6c3e;color:#fff;border:none;cursor:pointer;display:inline-flex;align-items:center;">
                     <svg style="width:16px;height:16px;margin-right:6px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                     <?= trans('admin_btn_print') ?>
                 </button>
             </div>
-            <?php if (empty($laporan)): ?>
-                <div class="empty-state"><?= trans('admin_empty_report') ?></div>
-            <?php else: ?>
-            <div style="overflow-x:auto;">
-            <table class="admin-table">
-                <thead><tr>
-                    <th><?= trans('admin_col_date') ?></th><th><?= trans('admin_col_total_booking') ?></th><th><?= trans('admin_col_total_revenue') ?></th>
-                </tr></thead>
-                <tbody>
-                <?php foreach ($laporan as $lp): ?>
-                <tr>
-                    <td><?= date('d M Y', strtotime($lp['tgl'])) ?></td>
-                    <td><?= $lp['total_booking'] ?></td>
-                    <td>Rp <?= number_format($lp['total_pendapatan'] ?? 0, 0, ',', '.') ?></td>
-                </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
+
+            <!-- Filter & Search Section -->
+            <form method="GET" action="index.php" class="print-hide flex flex-wrap gap-4 mb-6">
+                <input type="hidden" name="page" value="admin_dashboard">
+                <input type="hidden" name="section" value="laporan">
+                
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-semibold text-gray-600 dark:text-gray-300">Bulan:</label>
+                    <input type="month" name="month" value="<?= htmlspecialchars($filter_month) ?>" class="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-olive-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-semibold text-gray-600 dark:text-gray-300">Cari:</label>
+                    <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Nama Pelanggan atau Plat..." class="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-olive-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-64">
+                </div>
+                
+                <button type="submit" class="px-4 py-1.5 bg-olive-700 text-white text-sm font-semibold rounded-lg hover:bg-olive-800 transition-colors">Filter</button>
+                <a href="index.php?page=admin_dashboard&section=laporan" class="px-4 py-1.5 bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300 transition-colors">Reset</a>
+            </form>
+
+            <div id="print-area">
+                <style>
+                    /* Basic inline styles to ensure print works for the heading */
+                    .print-heading { display: none; }
+                    @media print {
+                        .print-heading { display: block !important; text-align: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; }
+                        #print-area { width: 100%; }
+                    }
+                </style>
+                <h2 class="print-heading">Laporan Transaksi - <?= date('F Y', strtotime($filter_month . '-01')) ?></h2>
+                
+                <?php if (empty($laporan)): ?>
+                    <div class="empty-state"><?= trans('admin_empty_report') ?></div>
+                <?php else: ?>
+                <div style="overflow-x:auto;">
+                <table class="admin-table">
+                    <thead><tr>
+                        <th>No</th>
+                        <th>Waktu Selesai</th>
+                        <th>Pelanggan</th>
+                        <th>Kendaraan</th>
+                        <th>Layanan</th>
+                        <th>Petugas</th>
+                        <th>Metode</th>
+                        <th>Total</th>
+                    </tr></thead>
+                    <tbody>
+                    <?php 
+                    $grand_total = 0;
+                    foreach ($laporan as $i => $lp): 
+                        $grand_total += $lp['total'];
+                    ?>
+                    <tr>
+                        <td><?= $i + 1 ?></td>
+                        <td><?= date('d M Y H:i', strtotime($lp['tanggal'])) ?></td>
+                        <td><?= htmlspecialchars($lp['pelanggan']) ?></td>
+                        <td><?= htmlspecialchars($lp['jenis']) ?> (<?= htmlspecialchars($lp['no_plat']) ?>)</td>
+                        <td><?= htmlspecialchars($lp['nama_layanan']) ?></td>
+                        <td><?= htmlspecialchars($lp['petugas'] ?: '-') ?></td>
+                        <td class="capitalize"><?= htmlspecialchars($lp['metode'] ?: '-') ?></td>
+                        <td>Rp <?= number_format($lp['total'] ?? 0, 0, ',', '.') ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="7" class="text-right font-bold py-3 px-4 border-t-2 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">Total Pendapatan:</td>
+                            <td class="font-bold py-3 px-4 border-t-2 border-gray-200 dark:border-gray-700 text-olive-700 dark:text-olive-400">Rp <?= number_format($grand_total, 0, ',', '.') ?></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                </div>
+                <?php endif; ?>
             </div>
-            <?php endif; ?>
         </div>
         
         <?php elseif ($current_section === 'layanan'): ?>
@@ -1018,6 +1100,151 @@ if ($current_section === 'ulasan') {
             </div>
             <?php endif; ?>
         </div>
+        
+        <?php elseif ($current_section === 'petugas'): ?>
+        <!-- ===== DATA PETUGAS ===== -->
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-sm mb-6 overflow-hidden">
+            <div class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-base m-0">Data Petugas</h3>
+            </div>
+            
+            <div class="p-6">
+                <!-- Tambah Data Button -->
+                <button onclick="document.getElementById('modal-add-petugas').classList.add('show')" class="px-5 py-2.5 rounded-xl text-sm font-semibold mb-6 inline-flex items-center transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5" style="background-color: #4b5320; color: white; border: none;">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Tambah Petugas
+                </button>
+
+                <?php if (empty($petugas_list)): ?>
+                    <div class="empty-state py-8 text-center text-gray-500 dark:text-gray-400">Belum ada data petugas.</div>
+                <?php else: ?>
+                <div class="overflow-x-auto rounded-sm">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Nama Petugas</th>
+                                <th>No HP</th>
+                                <th>Status</th>
+                                <th class="text-center w-64">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($petugas_list as $i => $p): ?>
+                            <tr>
+                                <td><?= $i + 1 ?></td>
+                                <td><?= htmlspecialchars($p['nama']) ?></td>
+                                <td><?= htmlspecialchars($p['no_hp'] ?? '-') ?></td>
+                                <td><span class="badge <?= $p['status'] === 'aktif' ? 'badge-done' : 'badge-unpaid' ?>"><?= htmlspecialchars($p['status']) ?></span></td>
+                                <td>
+                                    <div class="flex justify-center space-x-3">
+                                        <button onclick="openEditPetugasModal(<?= $p['id_petugas'] ?>, '<?= htmlspecialchars(addslashes($p['nama'])) ?>', '<?= htmlspecialchars(addslashes($p['no_hp'] ?? '')) ?>', '<?= $p['status'] ?>')" class="px-4 py-1.5 rounded text-sm inline-flex items-center transition-colors shadow-sm" style="background-color: #ffc107; color: white; border: 1px solid #e0a800;">Edit</button>
+                                        <button type="button" onclick="openDeletePetugasModal(<?= $p['id_petugas'] ?>)" class="px-4 py-1.5 rounded text-sm inline-flex items-center transition-colors shadow-sm" style="background-color: #dc3545; color: white; border: 1px solid #bd2130;">Hapus</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Add Petugas Modal -->
+        <div id="modal-add-petugas" class="payment-modal-overlay">
+            <div class="payment-modal-content" style="max-width: 450px;">
+                <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center" style="border-radius: 8px 8px 0 0;">
+                    <h3 class="font-bold text-gray-800 text-base m-0">Tambah Petugas</h3>
+                    <button type="button" onclick="document.getElementById('modal-add-petugas').classList.remove('show')" class="text-gray-400 hover:text-gray-600 focus:outline-none">&times;</button>
+                </div>
+                <form action="index.php?action=admin_manage_petugas" method="POST" class="p-6">
+                    <input type="hidden" name="manage_action" value="add">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Petugas</label>
+                        <input type="text" name="nama" required class="w-full border border-gray-300 rounded px-3 py-2">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">No HP</label>
+                        <input type="text" name="no_hp" class="w-full border border-gray-300 rounded px-3 py-2">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select name="status" class="w-full border border-gray-300 rounded px-3 py-2">
+                            <option value="aktif">Aktif</option>
+                            <option value="nonaktif">Nonaktif</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-2">
+                        <button type="button" onclick="document.getElementById('modal-add-petugas').classList.remove('show')" class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-olive-700 text-white rounded text-sm hover:bg-olive-800">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Petugas Modal -->
+        <div id="modal-edit-petugas" class="payment-modal-overlay">
+            <div class="payment-modal-content" style="max-width: 450px;">
+                <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center" style="border-radius: 8px 8px 0 0;">
+                    <h3 class="font-bold text-gray-800 text-base m-0">Edit Petugas</h3>
+                    <button type="button" onclick="document.getElementById('modal-edit-petugas').classList.remove('show')" class="text-gray-400 hover:text-gray-600 focus:outline-none">&times;</button>
+                </div>
+                <form action="index.php?action=admin_manage_petugas" method="POST" class="p-6">
+                    <input type="hidden" name="manage_action" value="edit">
+                    <input type="hidden" name="id_petugas" id="edit_petugas_id">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Petugas</label>
+                        <input type="text" name="nama" id="edit_petugas_nama" required class="w-full border border-gray-300 rounded px-3 py-2">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">No HP</label>
+                        <input type="text" name="no_hp" id="edit_petugas_no_hp" class="w-full border border-gray-300 rounded px-3 py-2">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select name="status" id="edit_petugas_status" class="w-full border border-gray-300 rounded px-3 py-2">
+                            <option value="aktif">Aktif</option>
+                            <option value="nonaktif">Nonaktif</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-2">
+                        <button type="button" onclick="document.getElementById('modal-edit-petugas').classList.remove('show')" class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-olive-700 text-white rounded text-sm hover:bg-olive-800">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete Petugas Modal -->
+        <div id="modal-delete-petugas" class="payment-modal-overlay">
+            <div class="payment-modal-content" style="max-width: 350px;">
+                <div class="p-8 text-center">
+                    <h3 class="mb-6 text-lg font-normal text-gray-700">Yakin ingin menghapus data petugas ini?</h3>
+                    <form action="index.php?action=admin_manage_petugas" method="POST" class="flex justify-center space-x-3">
+                        <input type="hidden" name="manage_action" value="delete">
+                        <input type="hidden" name="id_petugas" id="delete_petugas_id">
+                        <button type="button" onclick="document.getElementById('modal-delete-petugas').classList.remove('show')" class="text-gray-500 bg-white border border-gray-200 rounded-lg text-sm px-5 py-2.5">Batal</button>
+                        <button type="submit" class="text-white bg-red-600 rounded-lg text-sm px-5 py-2.5">Ya, Hapus</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        function openEditPetugasModal(id, nama, no_hp, status) {
+            document.getElementById('edit_petugas_id').value = id;
+            document.getElementById('edit_petugas_nama').value = nama;
+            document.getElementById('edit_petugas_no_hp').value = no_hp;
+            document.getElementById('edit_petugas_status').value = status;
+            document.getElementById('modal-edit-petugas').classList.add('show');
+        }
+        function openDeletePetugasModal(id) {
+            document.getElementById('delete_petugas_id').value = id;
+            document.getElementById('modal-delete-petugas').classList.add('show');
+        }
+        </script>
+
         <?php endif; ?>
 
     </div>
@@ -1181,7 +1408,58 @@ if ($current_section === 'ulasan') {
     </div>
 </div>
 
+<!-- Mulai Proses (Assignment) Modal -->
+<div id="modal-mulai-proses" class="payment-modal-overlay">
+    <div class="payment-modal-content" style="max-width: 450px;">
+        <div class="payment-modal-header">
+            <h3>Mulai Proses Booking</h3>
+            <button type="button" class="payment-modal-close" onclick="document.getElementById('modal-mulai-proses').classList.remove('show')">&times;</button>
+        </div>
+        <form action="index.php?action=admin_update_status" method="POST" style="margin:0; display:flex; flex-direction:column; min-height:0;">
+            <div class="payment-modal-body p-6">
+                <input type="hidden" name="id_booking" id="mulai_id_booking">
+                <input type="hidden" name="new_status" value="in_progress">
+                
+                <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                    Silakan pilih petugas yang akan menyuci kendaraan <strong id="mulai_plat_display" class="text-gray-800 dark:text-gray-200"></strong>.
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Pilih Petugas (Bisa Lebih Dari Satu)</label>
+                    <div class="space-y-2 max-h-60 overflow-y-auto pr-2 border border-gray-200 dark:border-gray-700 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                        <?php if (empty($petugas_list)): ?>
+                            <div class="text-sm text-gray-500 italic py-2 text-center">Belum ada data petugas aktif. Silakan tambahkan di menu Data Petugas.</div>
+                        <?php else: ?>
+                            <?php foreach ($petugas_list as $p): ?>
+                                <?php if ($p['status'] === 'aktif'): ?>
+                                <label class="flex items-center space-x-3 cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
+                                    <input type="checkbox" name="petugas_ids[]" value="<?= $p['id_petugas'] ?>" class="w-4 h-4 text-olive-600 bg-gray-100 border-gray-300 rounded focus:ring-olive-500">
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200"><?= htmlspecialchars($p['nama']) ?></span>
+                                </label>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="payment-modal-footer">
+                <button type="submit" class="btn-simpan bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30">Mulai Proses</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+function openMulaiProsesModal(idBooking, plat) {
+    document.getElementById('mulai_id_booking').value = idBooking;
+    document.getElementById('mulai_plat_display').textContent = plat;
+    // Uncheck all boxes first
+    const checkboxes = document.querySelectorAll('#modal-mulai-proses input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.checked = false);
+    document.getElementById('modal-mulai-proses').classList.add('show');
+}
+
 function openPaymentModal(data) {
     document.getElementById('pay_id_booking').value = data.id_booking;
     

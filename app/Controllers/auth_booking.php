@@ -14,16 +14,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $no_hp = cleanInput($_POST['whatsapp']);
         $email = cleanInput($_POST['email']);
 
-        // Cek apakah pelanggan sudah ada (berdasarkan email)
-        $stmt = $conn->prepare("SELECT id_pelanggan FROM pelanggan WHERE email = :email LIMIT 1");
-        $stmt->execute(['email' => $email]);
+        // Cek apakah pelanggan sudah ada (berdasarkan email dan nama)
+        $stmt = $conn->prepare("SELECT id_pelanggan FROM pelanggan WHERE email = :email AND nama = :nama LIMIT 1");
+        $stmt->execute(['email' => $email, 'nama' => $nama]);
         $existing = $stmt->fetch();
 
         if ($existing) {
-            // Update data pelanggan yang sudah ada
+            // Update data pelanggan yang sudah ada (hanya no_hp yang mungkin berubah)
             $id_pelanggan = $existing['id_pelanggan'];
-            $stmt = $conn->prepare("UPDATE pelanggan SET nama = :nama, no_hp = :no_hp WHERE id_pelanggan = :id");
-            $stmt->execute(['nama' => $nama, 'no_hp' => $no_hp, 'id' => $id_pelanggan]);
+            $stmt = $conn->prepare("UPDATE pelanggan SET no_hp = :no_hp WHERE id_pelanggan = :id");
+            $stmt->execute(['no_hp' => $no_hp, 'id' => $id_pelanggan]);
         } else {
             // Insert pelanggan baru
             $stmt = $conn->prepare("INSERT INTO pelanggan (nama, no_hp, email) VALUES (:nama, :no_hp, :email)");

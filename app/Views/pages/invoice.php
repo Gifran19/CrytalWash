@@ -28,8 +28,7 @@ $service_date = $booking_data['tanggal'] ?? date('Y-m-d');
 $duration = $booking_data['estimasi_waktu'] ?? 30;
 $payment_method = $order['payment_method'] ?? 'COD';
 $price = $booking_data['harga'] ?? ($order['total_price'] ?? 0);
-$admin_fee = 2000;
-$total = $price + $admin_fee;
+$total = $price;
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -158,10 +157,6 @@ $total = $price + $admin_fee;
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-500">Harga Layanan</span>
                         <span class="font-medium text-gray-900">Rp <?= number_format($price, 0, ',', '.') ?></span>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-500">Biaya Admin</span>
-                        <span class="font-medium text-gray-900">Rp <?= number_format($admin_fee, 0, ',', '.') ?></span>
                     </div>
                     
                     <hr class="border-gray-200 my-4">

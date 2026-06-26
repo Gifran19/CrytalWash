@@ -24,8 +24,12 @@ ON CONFLICT (username) DO NOTHING;
 -- 2. Insert Data Layanan Standar
 INSERT INTO layanan (nama_layanan, harga, jenis_kendaraan) 
 VALUES 
-    ('Cuci Reguler Mobil', 50000, 'Car'),
-    ('Cuci Premium Mobil', 80000, 'Car'),
-    ('Cuci Reguler Motor', 20000, 'Motorcycle'),
-    ('Cuci Premium Motor', 35000, 'Motorcycle')
+    ('Cuci Reguler Mobil Kecil', 40000, 'Mobil Kecil'),
+    ('Cuci Premium Mobil Kecil', 70000, 'Mobil Kecil'),
+    ('Cuci Reguler Mobil Sedang', 50000, 'Mobil Sedang'),
+    ('Cuci Premium Mobil Sedang', 80000, 'Mobil Sedang'),
+    ('Cuci Reguler Mobil Besar', 60000, 'Mobil Besar'),
+    ('Cuci Premium Mobil Besar', 90000, 'Mobil Besar'),
+    ('Cuci Reguler Motor', 20000, 'Motor'),
+    ('Cuci Premium Motor', 35000, 'Motor')
 ON CONFLICT DO NOTHING;
