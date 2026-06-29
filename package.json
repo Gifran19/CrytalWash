@@ -1,0 +1,21 @@
+{
+  "name": "crystalwash-prisma",
+  "version": "1.0.0",
+  "description": "Prisma schema & migration manager for CrystalWash",
+  "private": true,
+  "scripts": {
+    "db:migrate": "npx prisma migrate dev",
+    "db:push": "npx prisma db push",
+    "db:studio": "npx prisma studio",
+    "db:seed": "npx prisma db execute --file prisma/seed.sql"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.12",
+    "prisma": "^6.0.0",
+    "tailwindcss": "^3.4.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3"
+  }
+}
