@@ -27,12 +27,12 @@ ALTER TABLE layanan ADD COLUMN IF NOT EXISTS jenis_kendaraan VARCHAR(20) DEFAULT
 
 INSERT INTO layanan (nama_layanan, harga, jenis_kendaraan) 
 VALUES 
-    ('Cuci Reguler Mobil Kecil', 40000, 'Mobil Kecil'),
-    ('Cuci Premium Mobil Kecil', 70000, 'Mobil Kecil'),
-    ('Cuci Reguler Mobil Sedang', 50000, 'Mobil Sedang'),
-    ('Cuci Premium Mobil Sedang', 80000, 'Mobil Sedang'),
-    ('Cuci Reguler Mobil Besar', 60000, 'Mobil Besar'),
-    ('Cuci Premium Mobil Besar', 90000, 'Mobil Besar'),
-    ('Cuci Reguler Motor', 20000, 'Motor'),
-    ('Cuci Premium Motor', 35000, 'Motor')
+    ('Toyota Avanza / Veloz / Rush', 50000, 'Mobil'),
+    ('Honda Brio / Jazz / HRV', 50000, 'Mobil'),
+    ('Daihatsu Xenia / Terios / Sigra', 45000, 'Mobil'),
+    ('Mitsubishi Pajero / Toyota Fortuner', 70000, 'Mobil'),
+    ('Toyota Alphard / Premium MPV', 90000, 'Mobil'),
+    ('Honda Beat / Vario / Scoopy', 20000, 'Motor'),
+    ('Yamaha NMAX / Aerox / PCX', 25000, 'Motor'),
+    ('Motor Sport / Vespa / 250cc+', 35000, 'Motor')
 ON CONFLICT DO NOTHING;
