@@ -72,60 +72,102 @@
             </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Cuci Dasar -->
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <h3 class="text-lg font-bold text-center mb-6 text-gray-900 dark:text-gray-100"><?= trans('srv_1_title') ?></h3>
-                <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_1_l1') ?></li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_1_l2') ?></li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_1_l3') ?></li>
-                </ul>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+            
+            <!-- Kolom Kiri: Motor -->
+            <div class="space-y-6">
+                <div class="text-center mb-8">
+                    <h3 class="flex items-center justify-center text-3xl font-serif font-bold text-gray-800 dark:text-gray-100">
+                        <svg class="w-8 h-8 text-olive-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 17a2 2 0 100-4 2 2 0 000 4zM5 17a2 2 0 100-4 2 2 0 000 4z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 9l-3-3m0 0l-3 3m3-3v8"></path>
+                        </svg>
+                        Layanan Motor
+                    </h3>
+                    <div class="w-16 h-1 bg-olive-500 mx-auto mt-4 rounded-full"></div>
+                </div>
+                
+                <!-- Motor Standar -->
+                <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-md border border-gray-100 dark:border-gray-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-100 dark:border-gray-800 pb-4">
+                        <h4 class="text-xl font-bold text-gray-900 dark:text-gray-100">Motor Standar</h4>
+                        <span class="text-2xl font-black text-olive-600 dark:text-olive-500">Rp 15.000</span>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+                        Layanan cuci untuk kendaraan roda dua berdimensi kompak dengan kapasitas mesin kecil hingga menengah. Proses pengerjaan lebih cepat dan praktis, mencakup pembersihan bodi, velg, dan semir ban.
+                    </p>
+                    <div class="bg-gray-50 dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700">
+                        <span class="block text-sm font-bold text-olive-600 dark:text-olive-500 mb-2">CONTOH KENDARAAN:</span>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-300 leading-snug">
+                            Honda Beat, Scoopy, Vario 125, Supra, Yamaha Mio, Fazzio, Gear.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Motor Besar -->
+                <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-md border border-gray-100 dark:border-gray-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-100 dark:border-gray-800 pb-4">
+                        <h4 class="text-xl font-bold text-gray-900 dark:text-gray-100">Motor Besar</h4>
+                        <span class="text-2xl font-black text-olive-600 dark:text-olive-500">Rp 20.000</span>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+                        Layanan khusus untuk motor maxi scooter, motor sport, atau motor dengan bodi lebar. Memerlukan ketelitian ekstra untuk menjangkau celah bodi yang lebih kompleks dan area mesin yang terbuka.
+                    </p>
+                    <div class="bg-gray-50 dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700">
+                        <span class="block text-sm font-bold text-olive-600 dark:text-olive-500 mb-2">CONTOH KENDARAAN:</span>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-300 leading-snug">
+                            Yamaha NMAX, Aerox, Honda PCX, ADV, CBR, Kawasaki Ninja, Vespa Matic.
+                        </p>
+                    </div>
+                </div>
             </div>
-            <!-- Cuci Penuh -->
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <h3 class="text-lg font-bold text-center mb-6 text-gray-900 dark:text-gray-100"><?= trans('srv_2_title') ?></h3>
-                <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_2_l1') ?></li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_2_l2') ?></li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_2_l3') ?></li>
-                </ul>
-            </div>
-            <!-- Detail Interior -->
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <h3 class="text-lg font-bold text-center mb-6 text-gray-900 dark:text-gray-100"><?= trans('srv_3_title') ?></h3>
-                <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_3_l1') ?></li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_3_l2') ?></li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_3_l3') ?></li>
-                </ul>
-            </div>
-            <!-- Detail Mesin -->
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <h3 class="text-lg font-bold text-center mb-6 text-gray-900 dark:text-gray-100"><?= trans('srv_4_title') ?></h3>
-                <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_4_l1') ?></li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_4_l2') ?></li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_4_l3') ?></li>
-                </ul>
-            </div>
-            <!-- Cuci Kilat -->
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <h3 class="text-lg font-bold text-center mb-6 text-gray-900 dark:text-gray-100"><?= trans('srv_5_title') ?></h3>
-                <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_5_l1') ?></li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_5_l2') ?></li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_5_l3') ?></li>
-                </ul>
-            </div>
-            <!-- Cuci Ramah Lingkungan -->
-            <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <h3 class="text-lg font-bold text-center mb-6 text-gray-900 dark:text-gray-100"><?= trans('srv_6_title') ?></h3>
-                <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_6_l1') ?></li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_6_l2') ?></li>
-                    <li class="flex items-start"><span class="text-olive-500 mr-2">✓</span> <?= trans('srv_6_l3') ?></li>
-                </ul>
+
+            <!-- Kolom Kanan: Mobil -->
+            <div class="space-y-6">
+                <div class="text-center mb-8">
+                    <h3 class="flex items-center justify-center text-3xl font-serif font-bold text-gray-800 dark:text-gray-100">
+                        <svg class="w-8 h-8 text-olive-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M5 10V8a2 2 0 012-2h10a2 2 0 012 2v2m-3 8a2 2 0 11-4 0 2 2 0 014 0zm-10 0a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        Layanan Mobil
+                    </h3>
+                    <div class="w-16 h-1 bg-olive-500 mx-auto mt-4 rounded-full"></div>
+                </div>
+                
+                <!-- Mobil Standar -->
+                <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-md border border-gray-100 dark:border-gray-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-100 dark:border-gray-800 pb-4">
+                        <h4 class="text-xl font-bold text-gray-900 dark:text-gray-100">Mobil Standar</h4>
+                        <span class="text-2xl font-black text-olive-600 dark:text-olive-500">Rp 45.000</span>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+                        Perawatan cuci luar-dalam untuk kendaraan roda empat berukuran kompak hingga menengah (City Car, Hatchback, Compact SUV, dan Low MPV). Cocok untuk pembersihan harian yang efisien.
+                    </p>
+                    <div class="bg-gray-50 dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700">
+                        <span class="block text-sm font-bold text-olive-600 dark:text-olive-500 mb-2">CONTOH KENDARAAN:</span>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-300 leading-snug">
+                            Honda Brio, Jazz, HR-V, Toyota Agya, Yaris, Avanza, Rush, Daihatsu Xenia.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Mobil Besar -->
+                <div class="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-md border border-gray-100 dark:border-gray-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-100 dark:border-gray-800 pb-4">
+                        <h4 class="text-xl font-bold text-gray-900 dark:text-gray-100">Mobil Besar</h4>
+                        <span class="text-2xl font-black text-olive-600 dark:text-olive-500">Rp 50.000</span>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+                        Penanganan cuci ekstra untuk kendaraan berdimensi luas, panjang, dan tinggi (Large SUV, Premium MPV, Double Cabin). Membutuhkan lebih banyak sampo, waktu pengerjaan, dan pembersihan kabin interior yang lebih luas.
+                    </p>
+                    <div class="bg-gray-50 dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-700">
+                        <span class="block text-sm font-bold text-olive-600 dark:text-olive-500 mb-2">CONTOH KENDARAAN:</span>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-300 leading-snug">
+                            Toyota Fortuner, Innova (Reborn/Zenix), Alphard, Mitsubishi Pajero Sport, Hilux.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

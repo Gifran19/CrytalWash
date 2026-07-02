@@ -142,12 +142,12 @@ $formatted_finish_time = date('H:i', $estimated_finish_time) . ' WIB';
                     <!-- Bagian Tombol -->
                     <div class="space-y-3">
                         <!-- Tombol Kirim Ulasan -->
-                        <button type="submit" <?= !$id_booking ? 'disabled' : '' ?> class="w-full bg-[#4a5d23] hover:bg-[#3d4d1d] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
-                            Kirim Ulasan
+                        <button type="submit" <?= !$id_booking ? 'disabled' : '' ?> class="w-full bg-olive-700 hover:bg-olive-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
+                            Kirim Ulasan & Kembali
                         </button>
                         <!-- Tombol Kembali ke Home (Lewati) -->
-                        <a href="index.php?page=home" class="w-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3.5 px-4 rounded-xl transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5">
-                            Kembali ke Beranda
+                        <a href="index.php?page=home" class="w-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3.5 px-4 rounded-xl transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 mt-3">
+                            Lewati & Kembali ke Beranda
                         </a>
                     </div>
                 </div>

@@ -18,10 +18,10 @@ function cleanInput($data) {
  * Fungsi untuk mendapatkan badge status kendaraan (Opsional)
  */
 function getVehicleBadge($type) {
-    if ($type == 'Car') {
-        return "<span class='badge-car'>🚗 Car</span>";
+    if (strpos(strtolower($type), 'mobil') !== false || $type == 'Car') {
+        return "<span class='badge-car'>🚗 Mobil</span>";
     } else {
-        return "<span class='badge-motor'>🏍️ Motorcycle</span>";
+        return "<span class='badge-motor'>🏍️ Motor</span>";
     }
 }
 

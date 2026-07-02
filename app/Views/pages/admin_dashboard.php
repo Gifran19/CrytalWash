@@ -184,7 +184,14 @@ if ($current_section === 'ulasan') {
     } catch (PDOException $e) {}
 }
 
-// Petugas management removed
+// Petugas management & selection
+$petugas_list = [];
+if ($current_section === 'petugas' || $current_section === 'beranda') {
+    try {
+        $stmt = $conn->query("SELECT id_petugas, nama, no_hp, status FROM petugas ORDER BY nama ASC");
+        $petugas_list = $stmt->fetchAll();
+    } catch (PDOException $e) {}
+}
 
 ?>
 <?php include BASE_PATH . '/app/Views/layouts/header.php'; ?>
@@ -365,6 +372,7 @@ if ($current_section === 'ulasan') {
             <a href="index.php?page=admin_dashboard&section=beranda" class="sidebar-link <?= $current_section === 'beranda' ? 'active' : '' ?>"><?= trans('admin_nav_dashboard') ?></a>
             <a href="index.php?page=admin_dashboard&section=laporan" class="sidebar-link <?= $current_section === 'laporan' ? 'active' : '' ?>"><?= trans('admin_nav_reports') ?></a>
             <a href="index.php?page=admin_dashboard&section=layanan" class="sidebar-link <?= $current_section === 'layanan' ? 'active' : '' ?>"><?= trans('admin_nav_services') ?></a>
+            <a href="index.php?page=admin_dashboard&section=petugas" class="sidebar-link <?= $current_section === 'petugas' ? 'active' : '' ?>">Data Petugas</a>
             <a href="index.php?page=admin_dashboard&section=ulasan" class="sidebar-link <?= $current_section === 'ulasan' ? 'active' : '' ?>"><?= trans('admin_nav_reviews') ?></a>
         </nav>
     </aside>
@@ -380,6 +388,7 @@ if ($current_section === 'ulasan') {
                         if ($current_section === 'beranda') $section_title = trans('admin_nav_dashboard');
                         if ($current_section === 'laporan') $section_title = trans('admin_nav_reports');
                         if ($current_section === 'layanan') $section_title = trans('admin_nav_services');
+                        if ($current_section === 'petugas') $section_title = 'Data Petugas';
                         if ($current_section === 'ulasan') $section_title = trans('admin_nav_reviews');
                         if ($current_section === 'transaksi') $section_title = trans('admin_sec_transaction_list');
                         if ($current_section === 'booking') $section_title = trans('admin_sec_booking_list');
@@ -976,8 +985,10 @@ if ($current_section === 'ulasan') {
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1"><?= trans('admin_mod_label_type') ?></label>
                         <select name="jenis_kendaraan" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-1 focus:ring-olive-500 focus:border-olive-500 outline-none">
-                            <option value="Car">Mobil</option>
-                            <option value="Motorcycle">Motor</option>
+                            <option value="Mobil Standar">Mobil Standar</option>
+                            <option value="Mobil Besar">Mobil Besar</option>
+                            <option value="Motor">Motor</option>
+                            <option value="Motor Besar">Motor Besar</option>
                         </select>
                     </div>
                     <div class="mb-6">
@@ -1011,8 +1022,10 @@ if ($current_section === 'ulasan') {
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1"><?= trans('admin_mod_label_type') ?></label>
                         <select name="jenis_kendaraan" id="edit_jenis" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-1 focus:ring-olive-500 focus:border-olive-500 outline-none">
-                            <option value="Car">Mobil</option>
-                            <option value="Motorcycle">Motor</option>
+                            <option value="Mobil Standar">Mobil Standar</option>
+                            <option value="Mobil Besar">Mobil Besar</option>
+                            <option value="Motor">Motor</option>
+                            <option value="Motor Besar">Motor Besar</option>
                         </select>
                     </div>
                     <div class="mb-6">
@@ -1091,6 +1104,150 @@ if ($current_section === 'ulasan') {
             </div>
             <?php endif; ?>
         </div>
+        
+        <?php elseif ($current_section === 'petugas'): ?>
+        <!-- ===== DATA PETUGAS ===== -->
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-sm mb-6 overflow-hidden">
+            <div class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-base m-0">Data Petugas</h3>
+            </div>
+            
+            <div class="p-6">
+                <!-- Tambah Data Button -->
+                <button onclick="document.getElementById('modal-add-petugas').classList.add('show')" class="px-5 py-2.5 rounded-xl text-sm font-semibold mb-6 inline-flex items-center transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5" style="background-color: #4b5320; color: white; border: none;">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Tambah Petugas
+                </button>
+
+                <?php if (empty($petugas_list)): ?>
+                    <div class="empty-state py-8 text-center text-gray-500 dark:text-gray-400">Belum ada data petugas.</div>
+                <?php else: ?>
+                <div class="overflow-x-auto rounded-sm">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Nama Petugas</th>
+                                <th>No HP</th>
+                                <th>Status</th>
+                                <th class="text-center w-64">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($petugas_list as $i => $p): ?>
+                            <tr>
+                                <td><?= $i + 1 ?></td>
+                                <td><?= htmlspecialchars($p['nama']) ?></td>
+                                <td><?= htmlspecialchars($p['no_hp'] ?? '-') ?></td>
+                                <td><span class="badge <?= $p['status'] === 'aktif' ? 'badge-done' : 'badge-unpaid' ?>"><?= htmlspecialchars($p['status']) ?></span></td>
+                                <td>
+                                    <div class="flex justify-center space-x-3">
+                                        <button onclick="openEditPetugasModal(<?= $p['id_petugas'] ?>, '<?= htmlspecialchars(addslashes($p['nama'])) ?>', '<?= htmlspecialchars(addslashes($p['no_hp'] ?? '')) ?>', '<?= $p['status'] ?>')" class="px-4 py-1.5 rounded text-sm inline-flex items-center transition-colors shadow-sm" style="background-color: #ffc107; color: white; border: 1px solid #e0a800;">Edit</button>
+                                        <button type="button" onclick="openDeletePetugasModal(<?= $p['id_petugas'] ?>)" class="px-4 py-1.5 rounded text-sm inline-flex items-center transition-colors shadow-sm" style="background-color: #dc3545; color: white; border: 1px solid #bd2130;">Hapus</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Add Petugas Modal -->
+        <div id="modal-add-petugas" class="payment-modal-overlay">
+            <div class="payment-modal-content" style="max-width: 450px;">
+                <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center" style="border-radius: 8px 8px 0 0;">
+                    <h3 class="font-bold text-gray-800 text-base m-0">Tambah Petugas</h3>
+                    <button type="button" onclick="document.getElementById('modal-add-petugas').classList.remove('show')" class="text-gray-400 hover:text-gray-600 focus:outline-none">&times;</button>
+                </div>
+                <form action="index.php?action=admin_manage_petugas" method="POST" class="p-6">
+                    <input type="hidden" name="manage_action" value="add">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Petugas</label>
+                        <input type="text" name="nama" required class="w-full border border-gray-300 rounded px-3 py-2">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">No HP</label>
+                        <input type="text" name="no_hp" class="w-full border border-gray-300 rounded px-3 py-2">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select name="status" class="w-full border border-gray-300 rounded px-3 py-2">
+                            <option value="aktif">Aktif</option>
+                            <option value="nonaktif">Nonaktif</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-2">
+                        <button type="button" onclick="document.getElementById('modal-add-petugas').classList.remove('show')" class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-olive-700 text-white rounded text-sm hover:bg-olive-800">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Petugas Modal -->
+        <div id="modal-edit-petugas" class="payment-modal-overlay">
+            <div class="payment-modal-content" style="max-width: 450px;">
+                <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center" style="border-radius: 8px 8px 0 0;">
+                    <h3 class="font-bold text-gray-800 text-base m-0">Edit Petugas</h3>
+                    <button type="button" onclick="document.getElementById('modal-edit-petugas').classList.remove('show')" class="text-gray-400 hover:text-gray-600 focus:outline-none">&times;</button>
+                </div>
+                <form action="index.php?action=admin_manage_petugas" method="POST" class="p-6">
+                    <input type="hidden" name="manage_action" value="edit">
+                    <input type="hidden" name="id_petugas" id="edit_petugas_id">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Petugas</label>
+                        <input type="text" name="nama" id="edit_petugas_nama" required class="w-full border border-gray-300 rounded px-3 py-2">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">No HP</label>
+                        <input type="text" name="no_hp" id="edit_petugas_no_hp" class="w-full border border-gray-300 rounded px-3 py-2">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select name="status" id="edit_petugas_status" class="w-full border border-gray-300 rounded px-3 py-2">
+                            <option value="aktif">Aktif</option>
+                            <option value="nonaktif">Nonaktif</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-2">
+                        <button type="button" onclick="document.getElementById('modal-edit-petugas').classList.remove('show')" class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-olive-700 text-white rounded text-sm hover:bg-olive-800">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete Petugas Modal -->
+        <div id="modal-delete-petugas" class="payment-modal-overlay">
+            <div class="payment-modal-content" style="max-width: 350px;">
+                <div class="p-8 text-center">
+                    <h3 class="mb-6 text-lg font-normal text-gray-700">Yakin ingin menghapus data petugas ini?</h3>
+                    <form action="index.php?action=admin_manage_petugas" method="POST" class="flex justify-center space-x-3">
+                        <input type="hidden" name="manage_action" value="delete">
+                        <input type="hidden" name="id_petugas" id="delete_petugas_id">
+                        <button type="button" onclick="document.getElementById('modal-delete-petugas').classList.remove('show')" class="text-gray-500 bg-white border border-gray-200 rounded-lg text-sm px-5 py-2.5">Batal</button>
+                        <button type="submit" class="text-white bg-red-600 rounded-lg text-sm px-5 py-2.5">Ya, Hapus</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        function openEditPetugasModal(id, nama, no_hp, status) {
+            document.getElementById('edit_petugas_id').value = id;
+            document.getElementById('edit_petugas_nama').value = nama;
+            document.getElementById('edit_petugas_no_hp').value = no_hp;
+            document.getElementById('edit_petugas_status').value = status;
+            document.getElementById('modal-edit-petugas').classList.add('show');
+        }
+        function openDeletePetugasModal(id) {
+            document.getElementById('delete_petugas_id').value = id;
+            document.getElementById('modal-delete-petugas').classList.add('show');
+        }
+        </script>
 
         <?php endif; ?>
 
@@ -1268,7 +1425,25 @@ if ($current_section === 'ulasan') {
                 <input type="hidden" name="new_status" value="in_progress">
                 
                 <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                    Konfirmasi dimulainya proses pencucian untuk kendaraan <strong id="mulai_plat_display" class="text-gray-800 dark:text-gray-200"></strong>.
+                    Silakan pilih petugas yang akan menyuci kendaraan <strong id="mulai_plat_display" class="text-gray-800 dark:text-gray-200"></strong>.
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Pilih Petugas (Bisa Lebih Dari Satu)</label>
+                    <div class="space-y-2 max-h-60 overflow-y-auto pr-2 border border-gray-200 dark:border-gray-700 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                        <?php if (empty($petugas_list)): ?>
+                            <div class="text-sm text-gray-500 italic py-2 text-center">Belum ada data petugas aktif. Silakan tambahkan di menu Data Petugas.</div>
+                        <?php else: ?>
+                            <?php foreach ($petugas_list as $p): ?>
+                                <?php if ($p['status'] === 'aktif'): ?>
+                                <label class="flex items-center space-x-3 cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
+                                    <input type="checkbox" name="petugas_ids[]" value="<?= $p['id_petugas'] ?>" class="w-4 h-4 text-olive-600 bg-gray-100 border-gray-300 rounded focus:ring-olive-500">
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200"><?= htmlspecialchars($p['nama']) ?></span>
+                                </label>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
             
