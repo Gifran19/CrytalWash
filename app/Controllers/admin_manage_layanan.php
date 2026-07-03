@@ -48,10 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($used == 0) {
                     $stmt = $conn->prepare("DELETE FROM layanan WHERE id_layanan = ?");
                     $stmt->execute([$id_layanan]);
+                    $_SESSION['sweetalert_success'] = trans('admin_mod_del_success') !== 'admin_mod_del_success' ? trans('admin_mod_del_success') : 'Data layanan berhasil dihapus.';
                 } else {
-                    // Cannot delete if used in bookings, maybe redirect with an error message later
-                    header('Location: index.php?page=admin_dashboard&section=layanan&error=in_use');
-                    exit;
+                    $_SESSION['sweetalert_error'] = trans('admin_mod_del_error_in_use') !== 'admin_mod_del_error_in_use' ? trans('admin_mod_del_error_in_use') : 'Gagal menghapus! Layanan ini sedang digunakan pada riwayat pesanan/transaksi pelanggan.';
                 }
             }
         }

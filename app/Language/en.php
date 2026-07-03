@@ -148,6 +148,7 @@ return [
     'admin_sec_booking_list' => 'Booking List',
     'admin_sec_transaction_list' => 'Transaction List',
     'admin_sec_report_daily' => 'Daily Report',
+    'admin_sec_report_monthly' => 'Monthly Report',
     'admin_sec_revenue_trend' => 'Monthly Revenue Trend',
     'admin_sec_service_data' => 'Service Data',
     'admin_sec_review_list' => 'Reviews & Feedback List',
@@ -155,6 +156,9 @@ return [
     'admin_btn_add_service' => 'Add Service',
 
     // Admin Dashboard - Modals
+    'admin_mod_start_title' => 'Start Booking Process',
+    'admin_mod_start_confirm' => 'Are you sure you want to start the washing process for vehicle',
+    
     'admin_mod_add_title' => 'Add Service',
     'admin_mod_edit_title' => 'Edit Service',
     'admin_mod_label_service' => 'Service Name',
@@ -166,6 +170,8 @@ return [
     
     'admin_mod_del_title' => 'Are you sure you want to delete this service?',
     'admin_mod_btn_yes_del' => 'Yes, Delete',
+    'admin_mod_del_success' => 'Service data has been successfully deleted.',
+    'admin_mod_del_error_in_use' => 'Failed to delete! This service is currently being used in customer booking/transaction history.',
 
     'admin_mod_pay_title' => 'Payment Data',
     'admin_mod_pay_queue' => 'Queue No.',
@@ -178,4 +184,23 @@ return [
     'admin_mod_pay_total' => 'Total Cost',
     'admin_mod_pay_amount' => 'Amount Paid',
     'admin_mod_pay_change' => 'Change',
+    
+    // Pagination
+    'admin_page' => 'Showing page',
+    'admin_of' => 'of',
+    'admin_total' => 'Total',
+    'admin_transactions' => 'transactions',
+    'admin_prev' => 'Previous',
+    'admin_next' => 'Next',
+
+    // Ulasan & Feedback
+    'admin_stat_total_reviews' => 'Total Reviews',
+    'admin_stat_avg_rating' => 'Average Rating',
+    'admin_stat_attention' => 'Needs Attention',
+    'admin_filter_month' => 'Month',
+    'admin_filter_rating' => 'Filter by Rating',
+    'admin_opt_all_stars' => 'All Stars',
+    'admin_star' => 'Star(s)',
+    'admin_filter_search' => 'Search Keyword',
+    'admin_placeholder_search_review' => 'Name or comments...',
 ];

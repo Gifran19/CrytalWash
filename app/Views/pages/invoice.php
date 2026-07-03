@@ -171,7 +171,7 @@ $total = $price;
 
         <!-- Aesthetic Footer Wave & Back Button -->
         <div class="absolute bottom-0 left-0 w-full h-24 bg-olive-700 rounded-tr-[5rem] flex items-center justify-end px-10 no-print">
-            <a href="index.php?page=finish" class="bg-white text-olive-800 font-bold px-8 py-3 rounded-full hover:-translate-y-0.5 transition-all duration-300 shadow-md hover:shadow-lg text-sm">
+            <a href="index.php?page=home" class="bg-white text-olive-800 font-bold px-8 py-3 rounded-full hover:-translate-y-0.5 transition-all duration-300 shadow-md hover:shadow-lg text-sm">
                 Kembali
             </a>
         </div>

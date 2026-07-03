@@ -39,14 +39,26 @@ if ($current_section === 'beranda') {
         $stmt->execute();
         $all_bookings = $stmt->fetchAll();
 
+        $current_month = date('Y-m');
         foreach ($all_bookings as $bk) {
-            if ($bk['status'] === 'pending') { $beranda_menunggu[] = $bk; }
-            elseif ($bk['status'] === 'in_progress') { $beranda_diproses[] = $bk; }
-            else { $beranda_selesai[] = $bk; }
+            if ($bk['status'] === 'pending') { 
+                $beranda_menunggu[] = $bk; 
+            } elseif ($bk['status'] === 'in_progress') { 
+                $beranda_diproses[] = $bk; 
+            } else { 
+                $booking_month = date('Y-m', strtotime($bk['tanggal']));
+                if ($booking_month === $current_month) {
+                    $beranda_selesai[] = $bk; 
+                }
+            }
         }
         $count_menunggu = count($beranda_menunggu);
         $count_diproses = count($beranda_diproses);
-        $count_selesai = count($beranda_selesai);
+        
+        // Fetch actual completed count for the current month
+        $stmt_count_selesai = $conn->prepare("SELECT COUNT(*) as total FROM booking WHERE status = 'completed' AND TO_CHAR(tanggal, 'YYYY-MM') = :bulan");
+        $stmt_count_selesai->execute(['bulan' => $current_month]);
+        $count_selesai = (int)($stmt_count_selesai->fetch()['total'] ?? 0);
 
         // Today's revenue
         $stmt = $conn->prepare("SELECT COALESCE(SUM(t.total), 0) as total FROM transaksi t WHERE DATE(t.tanggal) = :tgl");
@@ -54,10 +66,10 @@ if ($current_section === 'beranda') {
         $total_pendapatan_hari = (int)($stmt->fetch()['total'] ?? 0);
 
         // Monthly revenue trend (last 6 months)
-        $stmt = $conn->query("SELECT DATE_FORMAT(t.tanggal, '%Y-%m') as bulan, SUM(t.total) as total
+        $stmt = $conn->query("SELECT TO_CHAR(t.tanggal, 'YYYY-MM') as bulan, SUM(t.total) as total
             FROM transaksi t
-            WHERE t.tanggal >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-            GROUP BY DATE_FORMAT(t.tanggal, '%Y-%m')
+            WHERE t.tanggal >= CURRENT_DATE - INTERVAL '6 months'
+            GROUP BY TO_CHAR(t.tanggal, 'YYYY-MM')
             ORDER BY bulan ASC");
         $monthly_revenue = $stmt->fetchAll();
     } catch (PDOException $e) {
@@ -133,8 +145,36 @@ $search = $_GET['search'] ?? '';
 
 if ($current_section === 'laporan') {
     try {
-        $query = "SELECT t.id_transaksi, b.tanggal, p.nama as pelanggan, k.no_plat, k.jenis, l.nama_layanan, py.total, py.metode,
-                  (SELECT STRING_AGG(pt.nama, ', ') FROM booking_petugas bp JOIN petugas pt ON bp.id_petugas = pt.id_petugas WHERE bp.id_booking = b.id_booking) as petugas
+        $limit = 20;
+        $page = isset($_GET['p']) ? (int)$_GET['p'] : 1;
+        if ($page < 1) $page = 1;
+        $offset = ($page - 1) * $limit;
+
+        // Query for count and sum
+        $count_query = "SELECT COUNT(*) as total_rows, COALESCE(SUM(py.total), 0) as total_revenue
+            FROM booking b
+            JOIN pelanggan p ON b.id_pelanggan = p.id_pelanggan
+            JOIN kendaraan k ON b.id_kendaraan = k.id_kendaraan
+            LEFT JOIN pembayaran py ON b.id_booking = py.id_booking
+            WHERE b.status = 'completed' AND TO_CHAR(b.tanggal, 'YYYY-MM') = :month";
+            
+        $params_count = ['month' => $filter_month];
+
+        if (!empty($search)) {
+            $count_query .= " AND (p.nama ILIKE :search OR k.no_plat ILIKE :search)";
+            $params_count['search'] = '%' . $search . '%';
+        }
+
+        $stmt_count = $conn->prepare($count_query);
+        $stmt_count->execute($params_count);
+        $count_data = $stmt_count->fetch();
+        
+        $total_rows = $count_data['total_rows'];
+        $grand_total = $count_data['total_revenue'];
+        $total_pages = ceil($total_rows / $limit);
+
+        // Query for data
+        $query = "SELECT t.id_transaksi, b.tanggal, p.nama as pelanggan, k.no_plat, k.jenis, l.nama_layanan, py.total, py.metode
             FROM booking b
             JOIN pelanggan p ON b.id_pelanggan = p.id_pelanggan
             JOIN kendaraan k ON b.id_kendaraan = k.id_kendaraan
@@ -142,18 +182,22 @@ if ($current_section === 'laporan') {
             LEFT JOIN transaksi t ON b.id_booking = t.id_booking
             LEFT JOIN pembayaran py ON b.id_booking = py.id_booking
             WHERE b.status = 'completed' AND TO_CHAR(b.tanggal, 'YYYY-MM') = :month";
-        
-        $params = ['month' => $filter_month];
 
         if (!empty($search)) {
             $query .= " AND (p.nama ILIKE :search OR k.no_plat ILIKE :search)";
-            $params['search'] = '%' . $search . '%';
         }
 
-        $query .= " ORDER BY b.tanggal DESC";
+        $query .= " ORDER BY b.tanggal DESC LIMIT :limit OFFSET :offset";
 
         $stmt = $conn->prepare($query);
-        $stmt->execute($params);
+        $stmt->bindValue(':month', $filter_month);
+        if (!empty($search)) {
+            $stmt->bindValue(':search', '%' . $search . '%');
+        }
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        
+        $stmt->execute();
         $laporan = $stmt->fetchAll();
     } catch (PDOException $e) {
         error_log($e->getMessage());
@@ -171,27 +215,88 @@ if ($current_section === 'layanan') {
 
 // Ulasan/Feedback
 $ulasan_list = [];
+$ulasan_filter_month = $_GET['month'] ?? date('Y-m');
+$ulasan_filter_rating = $_GET['rating'] ?? '';
+$ulasan_search = $_GET['search'] ?? '';
+$ulasan_page = 1;
+$ulasan_total_pages = 1;
+$ulasan_total_rows = 0;
+
+$ulasan_stat_total = 0;
+$ulasan_stat_avg = 0.0;
+$ulasan_stat_attention = 0;
+
 if ($current_section === 'ulasan') {
     try {
-        $stmt = $conn->query("SELECT f.id_feedback, f.rating, f.komentar, f.tanggal,
+        $limit = 20;
+        $ulasan_page = isset($_GET['p']) ? (int)$_GET['p'] : 1;
+        if ($ulasan_page < 1) $ulasan_page = 1;
+        $offset = ($ulasan_page - 1) * $limit;
+
+        // Base conditions
+        $where_sql = "WHERE TO_CHAR(f.tanggal, 'YYYY-MM') = :month";
+        $params = [':month' => $ulasan_filter_month];
+
+        if (!empty($ulasan_filter_rating)) {
+            $where_sql .= " AND f.rating = :rating";
+            $params[':rating'] = $ulasan_filter_rating;
+        }
+
+        if (!empty($ulasan_search)) {
+            $where_sql .= " AND (p.nama ILIKE :search OR f.komentar ILIKE :search)";
+            $params[':search'] = '%' . $ulasan_search . '%';
+        }
+
+        // Stats Query (Using only month filter for general month overview)
+        $stat_query = "SELECT 
+                COUNT(*) as total_ulasan,
+                COALESCE(AVG(rating), 0) as avg_rating,
+                COALESCE(SUM(CASE WHEN rating IN (1, 2) THEN 1 ELSE 0 END), 0) as attention_needed
+            FROM feedback f
+            WHERE TO_CHAR(f.tanggal, 'YYYY-MM') = :month";
+        $stmt_stat = $conn->prepare($stat_query);
+        $stmt_stat->execute([':month' => $ulasan_filter_month]);
+        $stats = $stmt_stat->fetch();
+        
+        $ulasan_stat_total = $stats['total_ulasan'] ?? 0;
+        $ulasan_stat_avg = round($stats['avg_rating'] ?? 0, 1);
+        $ulasan_stat_attention = $stats['attention_needed'] ?? 0;
+
+        // Count Query for Pagination
+        $count_query = "SELECT COUNT(*) as total_rows
+            FROM feedback f
+            JOIN booking b ON f.id_booking = b.id_booking
+            JOIN pelanggan p ON b.id_pelanggan = p.id_pelanggan
+            $where_sql";
+        $stmt_count = $conn->prepare($count_query);
+        $stmt_count->execute($params);
+        $ulasan_total_rows = $stmt_count->fetch()['total_rows'];
+        $ulasan_total_pages = ceil($ulasan_total_rows / $limit);
+
+        // Data Query
+        $query = "SELECT f.id_feedback, f.rating, f.komentar, f.tanggal,
                 p.nama, l.nama_layanan
             FROM feedback f
             JOIN booking b ON f.id_booking = b.id_booking
             JOIN pelanggan p ON b.id_pelanggan = p.id_pelanggan
             JOIN layanan l ON b.id_layanan = l.id_layanan
-            ORDER BY f.tanggal DESC LIMIT 50");
+            $where_sql
+            ORDER BY f.tanggal DESC LIMIT :limit OFFSET :offset";
+            
+        $stmt = $conn->prepare($query);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val);
+        }
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $ulasan_list = $stmt->fetchAll();
-    } catch (PDOException $e) {}
+    } catch (PDOException $e) {
+        error_log($e->getMessage());
+    }
 }
 
-// Petugas management & selection
-$petugas_list = [];
-if ($current_section === 'petugas' || $current_section === 'beranda') {
-    try {
-        $stmt = $conn->query("SELECT id_petugas, nama, no_hp, status FROM petugas ORDER BY nama ASC");
-        $petugas_list = $stmt->fetchAll();
-    } catch (PDOException $e) {}
-}
+
 
 ?>
 <?php include BASE_PATH . '/app/Views/layouts/header.php'; ?>
@@ -372,7 +477,7 @@ if ($current_section === 'petugas' || $current_section === 'beranda') {
             <a href="index.php?page=admin_dashboard&section=beranda" class="sidebar-link <?= $current_section === 'beranda' ? 'active' : '' ?>"><?= trans('admin_nav_dashboard') ?></a>
             <a href="index.php?page=admin_dashboard&section=laporan" class="sidebar-link <?= $current_section === 'laporan' ? 'active' : '' ?>"><?= trans('admin_nav_reports') ?></a>
             <a href="index.php?page=admin_dashboard&section=layanan" class="sidebar-link <?= $current_section === 'layanan' ? 'active' : '' ?>"><?= trans('admin_nav_services') ?></a>
-            <a href="index.php?page=admin_dashboard&section=petugas" class="sidebar-link <?= $current_section === 'petugas' ? 'active' : '' ?>">Data Petugas</a>
+
             <a href="index.php?page=admin_dashboard&section=ulasan" class="sidebar-link <?= $current_section === 'ulasan' ? 'active' : '' ?>"><?= trans('admin_nav_reviews') ?></a>
         </nav>
     </aside>
@@ -388,7 +493,7 @@ if ($current_section === 'petugas' || $current_section === 'beranda') {
                         if ($current_section === 'beranda') $section_title = trans('admin_nav_dashboard');
                         if ($current_section === 'laporan') $section_title = trans('admin_nav_reports');
                         if ($current_section === 'layanan') $section_title = trans('admin_nav_services');
-                        if ($current_section === 'petugas') $section_title = 'Data Petugas';
+
                         if ($current_section === 'ulasan') $section_title = trans('admin_nav_reviews');
                         if ($current_section === 'transaksi') $section_title = trans('admin_sec_transaction_list');
                         if ($current_section === 'booking') $section_title = trans('admin_sec_booking_list');
@@ -712,7 +817,18 @@ if ($current_section === 'petugas' || $current_section === 'beranda') {
 
         document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('chartRevenue');
-            new Chart(ctx, {
+            
+            function getChartColors() {
+                const isDark = document.documentElement.classList.contains('dark');
+                return {
+                    textColor: isDark ? '#e2e8f0' : '#475569',
+                    gridColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'
+                };
+            }
+
+            let colors = getChartColors();
+
+            const chartRevenue = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: <?= $chart_monthly_labels ?>,
@@ -733,14 +849,26 @@ if ($current_section === 'petugas' || $current_section === 'beranda') {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { labels: { color: '#fff', font: { weight: 600 } } }
+                        legend: { labels: { color: colors.textColor, font: { weight: 600 } } }
                     },
                     scales: {
-                        x: { ticks: { color: '#ddd', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.08)' } },
-                        y: { ticks: { color: '#ddd', callback: function(v) { return 'Rp ' + v.toLocaleString('id-ID'); } }, grid: { color: 'rgba(255,255,255,0.08)' } }
+                        x: { ticks: { color: colors.textColor, font: { size: 11 } }, grid: { color: colors.gridColor } },
+                        y: { ticks: { color: colors.textColor, callback: function(v) { return 'Rp ' + v.toLocaleString('id-ID'); } }, grid: { color: colors.gridColor } }
                     }
                 }
             });
+
+            // Update chart dynamically when theme is toggled
+            const observer = new MutationObserver(function() {
+                const newColors = getChartColors();
+                chartRevenue.options.plugins.legend.labels.color = newColors.textColor;
+                chartRevenue.options.scales.x.ticks.color = newColors.textColor;
+                chartRevenue.options.scales.x.grid.color = newColors.gridColor;
+                chartRevenue.options.scales.y.ticks.color = newColors.textColor;
+                chartRevenue.options.scales.y.grid.color = newColors.gridColor;
+                chartRevenue.update();
+            });
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
         });
         </script>
 
@@ -829,7 +957,7 @@ if ($current_section === 'petugas' || $current_section === 'beranda') {
         <!-- ===== LAPORAN ===== -->
         <div class="admin-card">
             <div class="card-header print-hide">
-                <h3>Laporan Bulanan</h3>
+                <h3><?= trans('admin_sec_report_monthly') ?></h3>
                 <button onclick="window.print()" class="px-4 py-2 text-sm font-medium rounded print-hide" style="background:#5a6c3e;color:#fff;border:none;cursor:pointer;display:inline-flex;align-items:center;">
                     <svg style="width:16px;height:16px;margin-right:6px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                     <?= trans('admin_btn_print') ?>
@@ -877,23 +1005,21 @@ if ($current_section === 'petugas' || $current_section === 'beranda') {
                         <th>Pelanggan</th>
                         <th>Kendaraan</th>
                         <th>Layanan</th>
-                        <th>Petugas</th>
+
                         <th>Metode</th>
                         <th>Total</th>
                     </tr></thead>
                     <tbody>
                     <?php 
-                    $grand_total = 0;
                     foreach ($laporan as $i => $lp): 
-                        $grand_total += $lp['total'];
                     ?>
                     <tr>
-                        <td><?= $i + 1 ?></td>
+                        <td><?= $offset + $i + 1 ?></td>
                         <td><?= date('d M Y H:i', strtotime($lp['tanggal'])) ?></td>
                         <td><?= htmlspecialchars($lp['pelanggan']) ?></td>
                         <td><?= htmlspecialchars($lp['jenis']) ?> (<?= htmlspecialchars($lp['no_plat']) ?>)</td>
                         <td><?= htmlspecialchars($lp['nama_layanan']) ?></td>
-                        <td><?= htmlspecialchars($lp['petugas'] ?: '-') ?></td>
+
                         <td class="capitalize"><?= htmlspecialchars($lp['metode'] ?: '-') ?></td>
                         <td>Rp <?= number_format($lp['total'] ?? 0, 0, ',', '.') ?></td>
                     </tr>
@@ -901,12 +1027,37 @@ if ($current_section === 'petugas' || $current_section === 'beranda') {
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="7" class="text-right font-bold py-3 px-4 border-t-2 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">Total Pendapatan:</td>
+                            <td colspan="6" class="text-right font-bold py-3 px-4 border-t-2 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100"><?= trans('admin_stat_revenue') ?>:</td>
                             <td class="font-bold py-3 px-4 border-t-2 border-gray-200 dark:border-gray-700 text-olive-700 dark:text-olive-400">Rp <?= number_format($grand_total, 0, ',', '.') ?></td>
                         </tr>
                     </tfoot>
                 </table>
                 </div>
+                
+                <?php if (isset($total_pages) && $total_pages > 1): ?>
+                <div class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4 print:hidden">
+                    <p class="text-sm text-gray-600 dark:text-gray-400"><?= trans('admin_page') ?> <?= $page ?> <?= trans('admin_of') ?> <?= $total_pages ?> (<?= trans('admin_total') ?> <?= $total_rows ?> <?= trans('admin_transactions') ?>)</p>
+                    <div class="flex space-x-1">
+                        <?php if ($page > 1): ?>
+                            <a href="index.php?page=admin_dashboard&section=laporan&month=<?= $filter_month ?>&search=<?= urlencode($search) ?>&p=<?= $page - 1 ?>" class="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 text-sm"><?= trans('admin_prev') ?></a>
+                        <?php endif; ?>
+                        
+                        <?php
+                        $start_page = max(1, $page - 2);
+                        $end_page = min($total_pages, $page + 2);
+                        
+                        for ($p = $start_page; $p <= $end_page; $p++):
+                        ?>
+                            <a href="index.php?page=admin_dashboard&section=laporan&month=<?= $filter_month ?>&search=<?= urlencode($search) ?>&p=<?= $p ?>" class="px-3 py-1 border <?= $p === $page ? 'bg-olive-700 text-white border-olive-700 dark:bg-olive-600' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600' ?> rounded text-sm"><?= $p ?></a>
+                        <?php endfor; ?>
+                        
+                        <?php if ($page < $total_pages): ?>
+                            <a href="index.php?page=admin_dashboard&section=laporan&month=<?= $filter_month ?>&search=<?= urlencode($search) ?>&p=<?= $page + 1 ?>" class="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 text-sm"><?= trans('admin_next') ?></a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <?php endif; ?>
             </div>
         </div>
@@ -1074,181 +1225,189 @@ if ($current_section === 'petugas' || $current_section === 'beranda') {
         <?php elseif ($current_section === 'ulasan'): ?>
         <!-- ===== ULASAN ===== -->
         <div class="admin-card">
-            <div class="card-header"><h3><?= trans('admin_sec_review_list') ?></h3></div>
-            <?php if (empty($ulasan_list)): ?>
-                <div class="empty-state"><?= trans('admin_empty_review') ?></div>
-            <?php else: ?>
-            <div style="overflow-x:auto;">
-            <table class="admin-table">
-                <thead><tr>
-                    <th><?= trans('admin_col_date') ?></th><th><?= trans('admin_col_customer') ?></th><th><?= trans('admin_col_service') ?></th><th><?= trans('admin_col_rating') ?></th><th><?= trans('admin_col_comment') ?></th>
-                </tr></thead>
-                <tbody>
-                <?php foreach ($ulasan_list as $u): ?>
-                <tr>
-                    <td class="whitespace-nowrap"><?= date('d M Y', strtotime($u['tanggal'])) ?></td>
-                    <td class="whitespace-nowrap font-medium"><?= htmlspecialchars($u['nama']) ?></td>
-                    <td class="whitespace-nowrap"><?= htmlspecialchars($u['nama_layanan']) ?></td>
-                    <td class="whitespace-nowrap">
-                        <div class="flex items-center text-yellow-400">
-                            <?php for ($i=0; $i < $u['rating']; $i++): ?>
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                            <?php endfor; ?>
+            <div class="card-header mb-4"><h3><?= trans('admin_sec_review_list') ?></h3></div>
+            
+            <!-- Summary Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 print-hide">
+                <!-- Total Reviews -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden group">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-olive-50 dark:bg-olive-900/20 rounded-full blur-2xl group-hover:bg-olive-100 dark:group-hover:bg-olive-900/30 transition-colors"></div>
+                    <div class="flex items-center gap-5 relative z-10">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-olive-400 to-olive-600 flex items-center justify-center text-white shadow-lg shadow-olive-500/30">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
                         </div>
-                    </td>
-                    <td class="max-w-md break-words text-sm"><?= htmlspecialchars($u['komentar']) ?></td>
-                </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
-            </div>
-            <?php endif; ?>
-        </div>
-        
-        <?php elseif ($current_section === 'petugas'): ?>
-        <!-- ===== DATA PETUGAS ===== -->
-        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-sm mb-6 overflow-hidden">
-            <div class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-                <h3 class="font-bold text-gray-800 dark:text-gray-100 text-base m-0">Data Petugas</h3>
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1"><?= trans('admin_stat_total_reviews') ?></p>
+                            <h4 class="text-3xl font-extrabold text-gray-800 dark:text-gray-100"><?= $ulasan_stat_total ?></h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Average Rating -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden group">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-50 dark:bg-amber-900/20 rounded-full blur-2xl group-hover:bg-amber-100 dark:group-hover:bg-amber-900/30 transition-colors"></div>
+                    <div class="flex items-center gap-5 relative z-10">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
+                            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1"><?= trans('admin_stat_avg_rating') ?></p>
+                            <h4 class="text-3xl font-extrabold text-gray-800 dark:text-gray-100"><?= number_format($ulasan_stat_avg, 1) ?> <span class="text-sm font-medium text-gray-400">/ 5.0</span></h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Needs Attention -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden group">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-rose-50 dark:bg-rose-900/20 rounded-full blur-2xl group-hover:bg-rose-100 dark:group-hover:bg-rose-900/30 transition-colors"></div>
+                    <div class="flex items-center gap-5 relative z-10">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white shadow-lg shadow-rose-500/30">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1"><?= trans('admin_stat_attention') ?></p>
+                            <h4 class="text-3xl font-extrabold text-gray-800 dark:text-gray-100"><?= $ulasan_stat_attention ?></h4>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div class="p-6">
-                <!-- Tambah Data Button -->
-                <button onclick="document.getElementById('modal-add-petugas').classList.add('show')" class="px-5 py-2.5 rounded-xl text-sm font-semibold mb-6 inline-flex items-center transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5" style="background-color: #4b5320; color: white; border: none;">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Tambah Petugas
-                </button>
+            <!-- Filter Section for Ulasan -->
+            <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-8 print-hide">
+                <form method="GET" action="index.php" class="flex flex-col md:flex-row md:items-end gap-5">
+                    <input type="hidden" name="page" value="admin_dashboard">
+                    <input type="hidden" name="section" value="ulasan">
+                    
+                    <div class="flex flex-col gap-2 flex-1 max-w-[200px]">
+                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider pl-1"><?= trans('admin_filter_month') ?></label>
+                        <input type="month" name="month" value="<?= htmlspecialchars($ulasan_filter_month) ?>" class="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 focus:border-olive-500 focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-olive-500/20 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all duration-200 outline-none">
+                    </div>
+                    
+                    <div class="flex flex-col gap-2 flex-1 max-w-[200px]">
+                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider pl-1"><?= trans('admin_filter_rating') ?></label>
+                        <select name="rating" class="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 focus:border-amber-500 focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-amber-500/20 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all duration-200 outline-none cursor-pointer">
+                            <option value=""><?= trans('admin_opt_all_stars') ?></option>
+                            <option value="5" <?= $ulasan_filter_rating == '5' ? 'selected' : '' ?>>5 <?= trans('admin_star') ?></option>
+                            <option value="4" <?= $ulasan_filter_rating == '4' ? 'selected' : '' ?>>4 <?= trans('admin_star') ?></option>
+                            <option value="3" <?= $ulasan_filter_rating == '3' ? 'selected' : '' ?>>3 <?= trans('admin_star') ?></option>
+                            <option value="2" <?= $ulasan_filter_rating == '2' ? 'selected' : '' ?>>2 <?= trans('admin_star') ?></option>
+                            <option value="1" <?= $ulasan_filter_rating == '1' ? 'selected' : '' ?>>1 <?= trans('admin_star') ?></option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex flex-col gap-2 flex-1">
+                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider pl-1"><?= trans('admin_filter_search') ?></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </div>
+                            <input type="text" name="search" value="<?= htmlspecialchars($ulasan_search) ?>" placeholder="<?= trans('admin_placeholder_search_review') ?>" class="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 focus:border-olive-500 focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-olive-500/20 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 transition-all duration-200 outline-none">
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3 h-[42px] mt-2 md:mt-0">
+                        <button type="submit" class="px-6 h-full bg-olive-700 text-white text-sm font-bold rounded-xl hover:bg-olive-800 transition-all duration-300 shadow-md flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                            Filter
+                        </button>
+                        <a href="index.php?page=admin_dashboard&section=ulasan" class="px-5 h-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-200 text-sm font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 hover:text-gray-900 transition-all duration-300 shadow-sm flex items-center justify-center">Reset</a>
+                    </div>
+                </form>
+            </div>
 
-                <?php if (empty($petugas_list)): ?>
-                    <div class="empty-state py-8 text-center text-gray-500 dark:text-gray-400">Belum ada data petugas.</div>
-                <?php else: ?>
-                <div class="overflow-x-auto rounded-sm">
-                    <table class="admin-table">
+            <?php if (empty($ulasan_list)): ?>
+                <div class="flex flex-col items-center justify-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 border-dashed">
+                    <div class="w-20 h-20 bg-gray-50 dark:bg-gray-900 rounded-full flex items-center justify-center text-gray-400 mb-4">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                    </div>
+                    <p class="text-gray-500 font-medium"><?= trans('admin_empty_review') ?></p>
+                </div>
+            <?php else: ?>
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr>
-                                <th>No.</th>
-                                <th>Nama Petugas</th>
-                                <th>No HP</th>
-                                <th>Status</th>
-                                <th class="text-center w-64">Aksi</th>
+                            <tr class="bg-gray-50/80 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
+                                <th class="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><?= trans('admin_col_date') ?></th>
+                                <th class="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><?= trans('admin_col_customer') ?></th>
+                                <th class="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><?= trans('admin_col_service') ?></th>
+                                <th class="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider"><?= trans('admin_col_rating') ?></th>
+                                <th class="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-1/3"><?= trans('admin_col_comment') ?></th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <?php foreach ($petugas_list as $i => $p): ?>
-                            <tr>
-                                <td><?= $i + 1 ?></td>
-                                <td><?= htmlspecialchars($p['nama']) ?></td>
-                                <td><?= htmlspecialchars($p['no_hp'] ?? '-') ?></td>
-                                <td><span class="badge <?= $p['status'] === 'aktif' ? 'badge-done' : 'badge-unpaid' ?>"><?= htmlspecialchars($p['status']) ?></span></td>
-                                <td>
-                                    <div class="flex justify-center space-x-3">
-                                        <button onclick="openEditPetugasModal(<?= $p['id_petugas'] ?>, '<?= htmlspecialchars(addslashes($p['nama'])) ?>', '<?= htmlspecialchars(addslashes($p['no_hp'] ?? '')) ?>', '<?= $p['status'] ?>')" class="px-4 py-1.5 rounded text-sm inline-flex items-center transition-colors shadow-sm" style="background-color: #ffc107; color: white; border: 1px solid #e0a800;">Edit</button>
-                                        <button type="button" onclick="openDeletePetugasModal(<?= $p['id_petugas'] ?>)" class="px-4 py-1.5 rounded text-sm inline-flex items-center transition-colors shadow-sm" style="background-color: #dc3545; color: white; border: 1px solid #bd2130;">Hapus</button>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50">
+                        <?php foreach ($ulasan_list as $u): ?>
+                        <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <?= date('d M Y', strtotime($u['tanggal'])) ?>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-olive-200 to-olive-100 dark:from-olive-800 dark:to-olive-700 flex items-center justify-center text-olive-700 dark:text-olive-200 font-bold text-xs uppercase shadow-inner">
+                                        <?= substr(htmlspecialchars($u['nama']), 0, 1) ?>
                                     </div>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
+                                    <span class="font-bold text-gray-800 dark:text-gray-200"><?= htmlspecialchars($u['nama']) ?></span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                                    <?= htmlspecialchars($u['nama_layanan']) ?>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-1">
+                                    <?php for ($i=1; $i <= 5; $i++): ?>
+                                        <?php if ($i <= $u['rating']): ?>
+                                            <svg class="w-4 h-4 text-amber-400 drop-shadow-sm" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                        <?php else: ?>
+                                            <svg class="w-4 h-4 text-gray-200 dark:text-gray-700" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                        <?php endif; ?>
+                                    <?php endfor; ?>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+                                <?php if (!empty($u['komentar'])): ?>
+                                    <p class="leading-relaxed line-clamp-2 hover:line-clamp-none transition-all"><?= htmlspecialchars($u['komentar']) ?></p>
+                                <?php else: ?>
+                                    <span class="text-gray-400 italic">No comment</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
-                <?php endif; ?>
             </div>
-        </div>
 
-        <!-- Add Petugas Modal -->
-        <div id="modal-add-petugas" class="payment-modal-overlay">
-            <div class="payment-modal-content" style="max-width: 450px;">
-                <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center" style="border-radius: 8px 8px 0 0;">
-                    <h3 class="font-bold text-gray-800 text-base m-0">Tambah Petugas</h3>
-                    <button type="button" onclick="document.getElementById('modal-add-petugas').classList.remove('show')" class="text-gray-400 hover:text-gray-600 focus:outline-none">&times;</button>
-                </div>
-                <form action="index.php?action=admin_manage_petugas" method="POST" class="p-6">
-                    <input type="hidden" name="manage_action" value="add">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Petugas</label>
-                        <input type="text" name="nama" required class="w-full border border-gray-300 rounded px-3 py-2">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">No HP</label>
-                        <input type="text" name="no_hp" class="w-full border border-gray-300 rounded px-3 py-2">
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select name="status" class="w-full border border-gray-300 rounded px-3 py-2">
-                            <option value="aktif">Aktif</option>
-                            <option value="nonaktif">Nonaktif</option>
-                        </select>
-                    </div>
-                    <div class="flex justify-end space-x-3 pt-2">
-                        <button type="button" onclick="document.getElementById('modal-add-petugas').classList.remove('show')" class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
-                        <button type="submit" class="px-4 py-2 bg-olive-700 text-white rounded text-sm hover:bg-olive-800">Simpan</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Edit Petugas Modal -->
-        <div id="modal-edit-petugas" class="payment-modal-overlay">
-            <div class="payment-modal-content" style="max-width: 450px;">
-                <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center" style="border-radius: 8px 8px 0 0;">
-                    <h3 class="font-bold text-gray-800 text-base m-0">Edit Petugas</h3>
-                    <button type="button" onclick="document.getElementById('modal-edit-petugas').classList.remove('show')" class="text-gray-400 hover:text-gray-600 focus:outline-none">&times;</button>
-                </div>
-                <form action="index.php?action=admin_manage_petugas" method="POST" class="p-6">
-                    <input type="hidden" name="manage_action" value="edit">
-                    <input type="hidden" name="id_petugas" id="edit_petugas_id">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Petugas</label>
-                        <input type="text" name="nama" id="edit_petugas_nama" required class="w-full border border-gray-300 rounded px-3 py-2">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">No HP</label>
-                        <input type="text" name="no_hp" id="edit_petugas_no_hp" class="w-full border border-gray-300 rounded px-3 py-2">
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select name="status" id="edit_petugas_status" class="w-full border border-gray-300 rounded px-3 py-2">
-                            <option value="aktif">Aktif</option>
-                            <option value="nonaktif">Nonaktif</option>
-                        </select>
-                    </div>
-                    <div class="flex justify-end space-x-3 pt-2">
-                        <button type="button" onclick="document.getElementById('modal-edit-petugas').classList.remove('show')" class="px-4 py-2 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50">Batal</button>
-                        <button type="submit" class="px-4 py-2 bg-olive-700 text-white rounded text-sm hover:bg-olive-800">Simpan Perubahan</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Delete Petugas Modal -->
-        <div id="modal-delete-petugas" class="payment-modal-overlay">
-            <div class="payment-modal-content" style="max-width: 350px;">
-                <div class="p-8 text-center">
-                    <h3 class="mb-6 text-lg font-normal text-gray-700">Yakin ingin menghapus data petugas ini?</h3>
-                    <form action="index.php?action=admin_manage_petugas" method="POST" class="flex justify-center space-x-3">
-                        <input type="hidden" name="manage_action" value="delete">
-                        <input type="hidden" name="id_petugas" id="delete_petugas_id">
-                        <button type="button" onclick="document.getElementById('modal-delete-petugas').classList.remove('show')" class="text-gray-500 bg-white border border-gray-200 rounded-lg text-sm px-5 py-2.5">Batal</button>
-                        <button type="submit" class="text-white bg-red-600 rounded-lg text-sm px-5 py-2.5">Ya, Hapus</button>
-                    </form>
+            <?php if (isset($ulasan_total_pages) && $ulasan_total_pages > 1): ?>
+            <div class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4 print:hidden">
+                <p class="text-sm text-gray-600 dark:text-gray-400"><?= trans('admin_page') ?> <?= $ulasan_page ?> <?= trans('admin_of') ?> <?= $ulasan_total_pages ?> (<?= trans('admin_total') ?> <?= $ulasan_total_rows ?> ulasan)</p>
+                <div class="flex space-x-1">
+                    <?php if ($ulasan_page > 1): ?>
+                        <a href="index.php?page=admin_dashboard&section=ulasan&month=<?= $ulasan_filter_month ?>&rating=<?= $ulasan_filter_rating ?>&search=<?= urlencode($ulasan_search) ?>&p=<?= $ulasan_page - 1 ?>" class="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 text-sm"><?= trans('admin_prev') ?></a>
+                    <?php endif; ?>
+                    
+                    <?php
+                    $start_page = max(1, $ulasan_page - 2);
+                    $end_page = min($ulasan_total_pages, $ulasan_page + 2);
+                    
+                    for ($p = $start_page; $p <= $end_page; $p++):
+                    ?>
+                        <a href="index.php?page=admin_dashboard&section=ulasan&month=<?= $ulasan_filter_month ?>&rating=<?= $ulasan_filter_rating ?>&search=<?= urlencode($ulasan_search) ?>&p=<?= $p ?>" class="px-3 py-1 border <?= $p === $ulasan_page ? 'bg-olive-700 text-white border-olive-700 dark:bg-olive-600' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600' ?> rounded text-sm"><?= $p ?></a>
+                    <?php endfor; ?>
+                    
+                    <?php if ($ulasan_page < $ulasan_total_pages): ?>
+                        <a href="index.php?page=admin_dashboard&section=ulasan&month=<?= $ulasan_filter_month ?>&rating=<?= $ulasan_filter_rating ?>&search=<?= urlencode($ulasan_search) ?>&p=<?= $ulasan_page + 1 ?>" class="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 text-sm"><?= trans('admin_next') ?></a>
+                    <?php endif; ?>
                 </div>
             </div>
+            <?php endif; ?>
+
+            <?php endif; ?>
         </div>
-
-        <script>
-        function openEditPetugasModal(id, nama, no_hp, status) {
-            document.getElementById('edit_petugas_id').value = id;
-            document.getElementById('edit_petugas_nama').value = nama;
-            document.getElementById('edit_petugas_no_hp').value = no_hp;
-            document.getElementById('edit_petugas_status').value = status;
-            document.getElementById('modal-edit-petugas').classList.add('show');
-        }
-        function openDeletePetugasModal(id) {
-            document.getElementById('delete_petugas_id').value = id;
-            document.getElementById('modal-delete-petugas').classList.add('show');
-        }
-        </script>
-
         <?php endif; ?>
 
     </div>
@@ -1416,7 +1575,7 @@ if ($current_section === 'petugas' || $current_section === 'beranda') {
 <div id="modal-mulai-proses" class="payment-modal-overlay">
     <div class="payment-modal-content" style="max-width: 450px;">
         <div class="payment-modal-header">
-            <h3>Mulai Proses Booking</h3>
+            <h3><?= trans('admin_mod_start_title') ?></h3>
             <button type="button" class="payment-modal-close" onclick="document.getElementById('modal-mulai-proses').classList.remove('show')">&times;</button>
         </div>
         <form action="index.php?action=admin_update_status" method="POST" style="margin:0; display:flex; flex-direction:column; min-height:0;">
@@ -1425,30 +1584,12 @@ if ($current_section === 'petugas' || $current_section === 'beranda') {
                 <input type="hidden" name="new_status" value="in_progress">
                 
                 <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                    Silakan pilih petugas yang akan menyuci kendaraan <strong id="mulai_plat_display" class="text-gray-800 dark:text-gray-200"></strong>.
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Pilih Petugas (Bisa Lebih Dari Satu)</label>
-                    <div class="space-y-2 max-h-60 overflow-y-auto pr-2 border border-gray-200 dark:border-gray-700 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                        <?php if (empty($petugas_list)): ?>
-                            <div class="text-sm text-gray-500 italic py-2 text-center">Belum ada data petugas aktif. Silakan tambahkan di menu Data Petugas.</div>
-                        <?php else: ?>
-                            <?php foreach ($petugas_list as $p): ?>
-                                <?php if ($p['status'] === 'aktif'): ?>
-                                <label class="flex items-center space-x-3 cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
-                                    <input type="checkbox" name="petugas_ids[]" value="<?= $p['id_petugas'] ?>" class="w-4 h-4 text-olive-600 bg-gray-100 border-gray-300 rounded focus:ring-olive-500">
-                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200"><?= htmlspecialchars($p['nama']) ?></span>
-                                </label>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
+                    <?= trans('admin_mod_start_confirm') ?> <strong id="mulai_plat_display" class="text-gray-800 dark:text-gray-200"></strong>?
                 </div>
             </div>
             
             <div class="payment-modal-footer">
-                <button type="submit" class="btn-simpan bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30">Mulai Proses</button>
+                <button type="submit" class="btn-simpan bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30"><?= trans('admin_action_start') ?></button>
             </div>
         </form>
     </div>
@@ -1458,9 +1599,6 @@ if ($current_section === 'petugas' || $current_section === 'beranda') {
 function openMulaiProsesModal(idBooking, plat) {
     document.getElementById('mulai_id_booking').value = idBooking;
     document.getElementById('mulai_plat_display').textContent = plat;
-    // Uncheck all boxes first
-    const checkboxes = document.querySelectorAll('#modal-mulai-proses input[type="checkbox"]');
-    checkboxes.forEach(cb => cb.checked = false);
     document.getElementById('modal-mulai-proses').classList.add('show');
 }
 

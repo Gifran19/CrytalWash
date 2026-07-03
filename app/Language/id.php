@@ -148,6 +148,7 @@ return [
     'admin_sec_booking_list' => 'Daftar Booking',
     'admin_sec_transaction_list' => 'Daftar Transaksi',
     'admin_sec_report_daily' => 'Laporan Harian',
+    'admin_sec_report_monthly' => 'Laporan Bulanan',
     'admin_sec_revenue_trend' => 'Trend Pendapatan Per Bulan',
     'admin_sec_service_data' => 'Data Jenis Cucian',
     'admin_sec_review_list' => 'Daftar Ulasan & Feedback',
@@ -155,6 +156,9 @@ return [
     'admin_btn_add_service' => 'Tambah Layanan',
 
     // Admin Dashboard - Modals
+    'admin_mod_start_title' => 'Mulai Proses Booking',
+    'admin_mod_start_confirm' => 'Apakah Anda yakin ingin memulai proses pencucian untuk kendaraan',
+    
     'admin_mod_add_title' => 'Tambah Jenis Cucian',
     'admin_mod_edit_title' => 'Edit Jenis Cucian',
     'admin_mod_label_service' => 'Jenis Cucian',
@@ -166,6 +170,8 @@ return [
     
     'admin_mod_del_title' => 'Yakin ingin menghapus layanan ini?',
     'admin_mod_btn_yes_del' => 'Ya, Hapus',
+    'admin_mod_del_success' => 'Data layanan berhasil dihapus.',
+    'admin_mod_del_error_in_use' => 'Gagal menghapus! Layanan ini sedang digunakan pada riwayat pesanan/transaksi pelanggan.',
 
     'admin_mod_pay_title' => 'Data Pembayaran',
     'admin_mod_pay_queue' => 'No. Antrian',
@@ -178,4 +184,23 @@ return [
     'admin_mod_pay_total' => 'Total Biaya',
     'admin_mod_pay_amount' => 'Uang Yang Dibayarkan',
     'admin_mod_pay_change' => 'Hitung Kembalian',
+    
+    // Pagination
+    'admin_page' => 'Menampilkan halaman',
+    'admin_of' => 'dari',
+    'admin_total' => 'Total',
+    'admin_transactions' => 'transaksi',
+    'admin_prev' => 'Sebelumnya',
+    'admin_next' => 'Selanjutnya',
+
+    // Ulasan & Feedback
+    'admin_stat_total_reviews' => 'Total Ulasan',
+    'admin_stat_avg_rating' => 'Rata-Rata Rating',
+    'admin_stat_attention' => 'Perlu Perhatian',
+    'admin_filter_month' => 'Bulan',
+    'admin_filter_rating' => 'Filter Rating',
+    'admin_opt_all_stars' => 'Semua Bintang',
+    'admin_star' => 'Bintang',
+    'admin_filter_search' => 'Cari Kata Kunci',
+    'admin_placeholder_search_review' => 'Cari nama atau ulasan...',
 ];

@@ -16,7 +16,7 @@ require_once BASE_PATH . '/app/Helpers/functions.php';
 // Route Actions (POST/Redirects)
 $action = $_GET['action'] ?? null;
 if ($action) {
-    $allowed_actions = ['auth_booking', 'payment_gateway', 'submit_review', 'admin_login', 'admin_logout', 'admin_manage_layanan', 'admin_pay_transaction', 'admin_update_status', 'admin_manage_petugas'];
+    $allowed_actions = ['auth_booking', 'payment_gateway', 'submit_review', 'admin_login', 'admin_logout', 'admin_manage_layanan', 'admin_pay_transaction', 'admin_update_status'];
     if (in_array($action, $allowed_actions)) {
         require_once BASE_PATH . "/app/Controllers/{$action}.php";
         exit;

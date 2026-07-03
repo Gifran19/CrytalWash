@@ -14,7 +14,7 @@ $stmt->execute(['tanggal' => $hari_ini]);
 $data = $stmt->fetch();
 
 $jumlah_antrean = $data['total'] ?? 0; 
-$jumlah_petugas = 2; // Bisa dibuat dinamis dari tabel petugas
+$jumlah_petugas = 2;
 $durasi_cuci = 30;    
 
 // 2. HITUNG ESTIMASI
