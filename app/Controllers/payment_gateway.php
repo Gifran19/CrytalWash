@@ -9,8 +9,16 @@ require_once BASE_PATH . '/app/Helpers/functions.php';
  * booking, pembayaran, antrian, transaksi, invoice
  */
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $method     = cleanInput($_POST['payment_method']);
+$is_post = $_SERVER['REQUEST_METHOD'] == 'POST';
+$is_confirm_qris = isset($_GET['confirm_qris']) && $_GET['confirm_qris'] == 1;
+
+if ($is_post || $is_confirm_qris) {
+    if ($is_post) {
+        $method = cleanInput($_POST['payment_method'] ?? '');
+    } else {
+        $method = 'QRIS';
+    }
+    
     $order      = $_SESSION['order'] ?? [];
     $total      = $order['total_price'] ?? 0;
 
@@ -23,6 +31,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Validasi input metode
     if (!in_array($method, ['Cash', 'QRIS'])) {
         header("Location: index.php?page=checkout&step=4&error=invalid_method");
+        exit();
+    }
+
+    if ($method === 'QRIS' && !$is_confirm_qris) {
+        $_SESSION['order']['payment_method'] = 'QRIS';
+        header("Location: index.php?page=qris_checkout");
         exit();
     }
 
@@ -108,11 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['order']['estimasi_waktu']  = $estimasi;
 
         // Redirect ke halaman selanjutnya
-        if ($method === 'QRIS') {
-            header("Location: index.php?page=qris_checkout&id_booking=" . $id_booking);
-        } else {
-            header("Location: index.php?page=finish");
-        }
+        header("Location: index.php?page=finish");
         exit();
 
     } catch (PDOException $e) {

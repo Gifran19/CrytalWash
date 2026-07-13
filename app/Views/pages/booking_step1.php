@@ -27,7 +27,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
             </div>
-            <input type="text" name="whatsapp" placeholder="<?= trans('placeholder_whatsapp') ?>" required
+            <input type="tel" name="whatsapp" placeholder="<?= trans('placeholder_whatsapp') ?>" required
+                pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                 class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl py-4 pl-12 pr-4 text-gray-800 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-olive-400 focus:border-olive-700 dark:focus:ring-olive-500 focus:outline-none transition-all duration-300">
         </div>
     </div>

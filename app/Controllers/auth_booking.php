@@ -55,6 +55,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit();
         }
 
+        if (strlen($plat) > 20) {
+            header("Location: index.php?page=checkout&step=2&error=long_plat");
+            exit();
+        }
+
+        // Validasi format plat nomor Indonesia: 1-2 Huruf, 1-4 Angka, 1-3 Huruf (tanpa spasi karena sudah di-clean)
+        if (!preg_match('/^[A-Z]{1,2}[0-9]{1,4}[A-Z]{0,3}$/', $plat)) {
+            header("Location: index.php?page=checkout&step=2&error=invalid_plat");
+            exit();
+        }
+
         if ($id_pelanggan) {
             // Cek apakah kendaraan sudah terdaftar untuk pelanggan ini
             $stmt = $conn->prepare("SELECT id_kendaraan FROM kendaraan WHERE no_plat = :plat AND id_pelanggan = :id_pelanggan LIMIT 1");
