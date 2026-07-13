@@ -1,4 +1,3 @@
-=============================================================
 TUTORIAL: CARA MENYAMBUNGKAN PROJECT LOCALHOST (XAMPP) 
 KE DATABASE SUPABASE MILIK SENDIRI
 =============================================================
