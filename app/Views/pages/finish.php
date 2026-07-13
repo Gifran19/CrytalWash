@@ -41,7 +41,7 @@ $formatted_finish_time = date('H:i', $estimated_finish_time) . ' WIB';
 <?php include BASE_PATH . '/app/Views/layouts/header.php'; ?>
 
 <!-- Container dengan Latar Belakang Dark Navy -->
-<div class="bg-slate-900 flex-grow flex items-center justify-center p-4 md:p-8 w-full min-h-screen">
+<div class="bg-slate-900 flex-grow flex items-center justify-center py-12 px-4 md:p-8 w-full min-h-screen">
     <!-- Kontainer Utama (Grid 2 Kolom pada md, 1 Kolom pada mobile) -->
     <div class="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
 

@@ -54,13 +54,21 @@
         document.addEventListener('DOMContentLoaded', function() {
             const loginModal = document.getElementById('loginModal');
             const openLoginBtn = document.getElementById('openLoginBtn');
+            const openLoginMobileBtn = document.getElementById('openLoginMobileBtn');
             const closeModalBtn = document.getElementById('closeModalBtn');
 
-            if (openLoginBtn && loginModal && closeModalBtn) {
-                openLoginBtn.addEventListener('click', (e) => {
+            if (loginModal && closeModalBtn) {
+                const openModal = (e) => {
                     e.preventDefault();
                     loginModal.classList.remove('hidden');
-                });
+                };
+
+                if (openLoginBtn) {
+                    openLoginBtn.addEventListener('click', openModal);
+                }
+                if (openLoginMobileBtn) {
+                    openLoginMobileBtn.addEventListener('click', openModal);
+                }
 
                 closeModalBtn.addEventListener('click', () => {
                     loginModal.classList.add('hidden');

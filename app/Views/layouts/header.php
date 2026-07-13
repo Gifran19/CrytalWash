@@ -86,10 +86,70 @@
                     <button id="openLoginBtn" class="hidden md:inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-olive-700 hover:bg-olive-800 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md cursor-pointer">
                         <?= trans('nav_login') ?>
                     </button>
+                    
+                    <!-- Hamburger Menu Button (Mobile) -->
+                    <button id="mobileMenuToggleBtn" class="inline-flex md:hidden items-center justify-center p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300 text-gray-500 dark:text-gray-400" aria-label="Toggle Mobile Menu">
+                        <svg id="hamburgerIcon" class="w-6 h-6 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                        <svg id="closeIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
         </div>
+        
+        <!-- Mobile Dropdown Menu -->
+        <div id="mobileMenu" class="hidden md:hidden border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 transition-all duration-300">
+            <div class="px-4 pt-2 pb-6 space-y-3 shadow-inner">
+                <a href="index.php?page=home#about" class="block px-3 py-2 rounded-xl text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-olive-700 dark:hover:text-olive-400 transition-colors"><?= trans('nav_about') ?></a>
+                <a href="index.php?page=home#benefit" class="block px-3 py-2 rounded-xl text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-olive-700 dark:hover:text-olive-400 transition-colors"><?= trans('nav_benefit') ?></a>
+                <a href="index.php?page=home#service" class="block px-3 py-2 rounded-xl text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-olive-700 dark:hover:text-olive-400 transition-colors"><?= trans('nav_service') ?></a>
+                <a href="index.php?page=home#contact" class="block px-3 py-2 rounded-xl text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-olive-700 dark:hover:text-olive-400 transition-colors"><?= trans('nav_contact') ?></a>
+                
+                <div class="border-t border-gray-100 dark:border-gray-800 my-2 pt-2"></div>
+                
+                <button id="openLoginMobileBtn" class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-full shadow-sm text-base font-medium text-white bg-olive-700 hover:bg-olive-800 transition-all duration-300 cursor-pointer">
+                    <?= trans('nav_login') ?>
+                </button>
+            </div>
+        </div>
     </nav>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.getElementById('mobileMenuToggleBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const hamburgerIcon = document.getElementById('hamburgerIcon');
+            const closeIcon = document.getElementById('closeIcon');
+            
+            if (toggleBtn && mobileMenu) {
+                toggleBtn.addEventListener('click', () => {
+                    const isHidden = mobileMenu.classList.contains('hidden');
+                    if (isHidden) {
+                        mobileMenu.classList.remove('hidden');
+                        hamburgerIcon.classList.add('hidden');
+                        closeIcon.classList.remove('hidden');
+                    } else {
+                        mobileMenu.classList.add('hidden');
+                        hamburgerIcon.classList.remove('hidden');
+                        closeIcon.classList.add('hidden');
+                    }
+                });
+                
+                // Close mobile menu when clicking on links
+                const links = mobileMenu.querySelectorAll('a, button');
+                links.forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                        hamburgerIcon.classList.remove('hidden');
+                        closeIcon.classList.add('hidden');
+                    });
+                });
+            }
+        });
+    </script>
     <?php endif; ?>
 
     <!-- Main Content Wrapper -->

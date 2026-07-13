@@ -3,7 +3,7 @@
 <!-- Hero Section -->
 <section class="py-28 bg-gradient-to-b from-olive-50 dark:from-slate-900 to-white dark:to-slate-900 transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h1 class="text-5xl md:text-7xl font-bold font-serif leading-tight mb-12">
+        <h1 class="text-4xl sm:text-5xl md:text-7xl font-bold font-serif leading-tight mb-12">
             <?= trans('hero_title') ?>
         </h1>
         
@@ -37,7 +37,7 @@
             <p class="text-gray-500 dark:text-gray-400 uppercase text-xs font-semibold tracking-widest"><?= trans('benefit_subtitle') ?></p>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
             <div class="bg-olive-50 dark:bg-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-transparent dark:border-gray-700">
                 <h4 class="text-sm font-bold border-b border-gray-200 dark:border-gray-700 pb-2 mb-3"><?= trans('benefit_1_title') ?></h4>
                 <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed"><?= trans('benefit_1_desc') ?></p>

@@ -7,7 +7,8 @@
     "db:migrate": "npx prisma migrate dev",
     "db:push": "npx prisma db push",
     "db:studio": "npx prisma studio",
-    "db:seed": "npx prisma db execute --file prisma/seed.sql"
+    "db:seed": "npx prisma db execute --file prisma/seed.sql",
+    "build:css": "tailwindcss -i ./src/css/input.css -o ./public/assets/css/style.css"
   },
   "devDependencies": {
     "autoprefixer": "^10.5.0",

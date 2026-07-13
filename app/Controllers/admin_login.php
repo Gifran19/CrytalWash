@@ -1,8 +1,5 @@
 <?php
-/**
- * CrystalWash - Admin Login Controller
- * Handles admin authentication against the kasir table
- */
+
 
 require_once BASE_PATH . '/app/Config/database.php';
 

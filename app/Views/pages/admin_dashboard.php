@@ -344,13 +344,17 @@ if ($current_section === 'ulasan') {
 
     /* Main Content */
     .admin-main {
-        flex: 1; background: #fafafa; padding: 2.5rem;
+        flex: 1; background: #fafafa; padding: 1rem;
         overflow-y: auto;
     }
     .admin-card {
         background: #fff; border: 1px solid #f3f4f6; border-radius: 1.5rem;
-        padding: 1.75rem 2rem; margin-bottom: 2rem;
+        padding: 1rem; margin-bottom: 1.5rem;
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02);
+    }
+    @media (min-width: 768px) {
+        .admin-main { padding: 2.5rem; }
+        .admin-card { padding: 1.75rem 2rem; margin-bottom: 2rem; }
     }
     .card-header {
         display: flex; justify-content: space-between; align-items: center;

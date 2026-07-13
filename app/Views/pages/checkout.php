@@ -92,7 +92,7 @@ $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
     </div>
 
     <!-- Bagian Gambar / Summary (Kanan) -->
-    <div class="flex flex-col h-full bg-white relative overflow-hidden">
+    <div class="<?= $step == 3 ? 'flex' : 'hidden md:flex' ?> flex-col bg-white dark:bg-gray-900 relative overflow-hidden min-h-[350px] md:min-h-0 md:h-full transition-colors duration-300">
         <?php if ($step == 3): 
             $order_summary = $_SESSION['order'] ?? [];
         ?>

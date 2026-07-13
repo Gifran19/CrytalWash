@@ -128,21 +128,25 @@ if ($error === 'duplicate_plat'): ?>
     <!-- Date & Time (Antrian) -->
     <div class="group">
         <label class="text-xs uppercase font-semibold text-gray-600 dark:text-gray-400 tracking-wider mb-2 block group-focus-within:text-olive-700 dark:group-focus-within:text-olive-400 transition-colors">Tanggal & Waktu</label>
-        <div class="flex items-stretch border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 overflow-hidden focus-within:ring-2 focus-within:ring-olive-400 focus-within:border-olive-700 dark:focus-within:border-olive-500 transition-all duration-300 shadow-sm relative">
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                <svg class="h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-olive-600 dark:group-focus-within:text-olive-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+        <div class="flex flex-col sm:flex-row sm:items-stretch border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 overflow-hidden focus-within:ring-2 focus-within:ring-olive-400 focus-within:border-olive-700 dark:focus-within:border-olive-500 transition-all duration-300 shadow-sm">
+            <!-- Date Picker Wrapper -->
+            <div class="relative w-full sm:w-1/2">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                    <svg class="h-5 w-5 text-gray-400 dark:text-gray-500 group-focus-within:text-olive-600 dark:group-focus-within:text-olive-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <!-- Date Picker -->
+                <input type="date" name="tanggal" value="<?= date('Y-m-d') ?>" required
+                    class="w-full py-4 pl-12 pr-4 border-none focus:ring-0 text-sm font-semibold text-gray-800 dark:text-gray-100 bg-transparent outline-none [color-scheme:light] dark:[color-scheme:dark]">
             </div>
-            <!-- Date Picker -->
-            <input type="date" name="tanggal" value="<?= date('Y-m-d') ?>" required
-                class="w-1/2 py-4 pl-12 pr-4 border-none focus:ring-0 text-sm font-semibold text-gray-800 dark:text-gray-100 bg-transparent outline-none [color-scheme:light] dark:[color-scheme:dark]">
             
-            <!-- Vertical Divider -->
-            <div class="w-px bg-gray-200 dark:bg-gray-700 my-3"></div>
+            <!-- Divider (Horizontal on mobile, Vertical on sm+) -->
+            <div class="h-px w-full bg-gray-200 dark:bg-gray-700 sm:hidden"></div>
+            <div class="hidden sm:block w-px bg-gray-200 dark:bg-gray-700 my-3"></div>
             
             <!-- Antrian Status -->
-            <div class="w-1/2 p-4 flex items-center justify-center bg-gray-50/50 dark:bg-gray-900/50">
+            <div class="w-full sm:w-1/2 p-4 flex items-center justify-center bg-gray-50/50 dark:bg-gray-900/50">
                 <div class="flex items-center text-sm font-semibold text-gray-800 dark:text-gray-200">
                     <svg class="w-4 h-4 mr-2 text-olive-600 dark:text-olive-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
