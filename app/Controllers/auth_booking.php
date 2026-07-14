@@ -31,11 +31,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id_pelanggan = $conn->lastInsertId();
         }
 
-        // Simpan ke session
-        $_SESSION['order']['id_pelanggan'] = $id_pelanggan;
-        $_SESSION['order']['nama']  = $nama;
-        $_SESSION['order']['whatsapp'] = $no_hp;
-        $_SESSION['order']['email'] = $email;
+        // Reset order session and store fresh step 1 data
+        $_SESSION['order'] = [
+            'id_pelanggan' => $id_pelanggan,
+            'nama'         => $nama,
+            'whatsapp'     => $no_hp,
+            'email'        => $email
+        ];
     }
 
     // =========================================================

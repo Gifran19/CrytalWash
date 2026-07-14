@@ -32,15 +32,23 @@
 
             <h2 class="text-2xl font-bold text-center text-gray-800 dark:text-white mb-6">Login</h2>
 
-            <form action="index.php?action=admin_login" method="POST">
+            <!-- Error message container -->
+            <div id="modalLoginError" class="hidden bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm mb-6 border border-red-200 dark:border-red-800 flex items-start">
+                <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <span id="modalLoginErrorText"></span>
+            </div>
+
+            <form id="modalLoginForm" action="index.php?action=admin_login" method="POST">
                 <div class="mb-4">
-                    <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
-                    <input type="text" id="username" name="username" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-slate-700 dark:text-white rounded-xl focus:ring-olive-500 focus:border-olive-500 outline-none transition" placeholder="Masukkan username" required>
+                    <label for="modalUsername" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
+                    <input type="text" id="modalUsername" name="username" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-slate-700 dark:text-white rounded-xl focus:ring-olive-500 focus:border-olive-500 outline-none transition" placeholder="Masukkan username" required>
                 </div>
 
                 <div class="mb-6">
-                    <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
-                    <input type="password" id="password" name="password" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-slate-700 dark:text-white rounded-xl focus:ring-olive-500 focus:border-olive-500 outline-none transition" placeholder="••••••••" required>
+                    <label for="modalPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                    <input type="password" id="modalPassword" name="password" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-slate-700 dark:text-white rounded-xl focus:ring-olive-500 focus:border-olive-500 outline-none transition" placeholder="••••••••" required>
                 </div>
 
                 <button type="submit" class="w-full bg-olive-700 hover:bg-olive-800 text-white font-semibold py-3 px-4 rounded-xl transition duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5">
@@ -56,10 +64,19 @@
             const openLoginBtn = document.getElementById('openLoginBtn');
             const openLoginMobileBtn = document.getElementById('openLoginMobileBtn');
             const closeModalBtn = document.getElementById('closeModalBtn');
+            const modalLoginForm = document.getElementById('modalLoginForm');
+            const modalLoginError = document.getElementById('modalLoginError');
+            const modalLoginErrorText = document.getElementById('modalLoginErrorText');
 
             if (loginModal && closeModalBtn) {
                 const openModal = (e) => {
                     e.preventDefault();
+                    if (modalLoginError) {
+                        modalLoginError.classList.add('hidden');
+                    }
+                    if (modalLoginForm) {
+                        modalLoginForm.reset();
+                    }
                     loginModal.classList.remove('hidden');
                 };
 
@@ -79,6 +96,81 @@
                         loginModal.classList.add('hidden');
                     }
                 });
+            }
+
+            if (modalLoginForm) {
+                modalLoginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    if (modalLoginError) {
+                        modalLoginError.classList.add('hidden');
+                    }
+                    
+                    const formData = new FormData(modalLoginForm);
+                    
+                    fetch(modalLoginForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            window.location.href = data.redirect || 'index.php?page=admin_dashboard';
+                        } else {
+                            if (modalLoginError && modalLoginErrorText) {
+                                modalLoginErrorText.textContent = data.message || 'Login failed';
+                                modalLoginError.classList.remove('hidden');
+                            } else {
+                                alert(data.message || 'Login failed');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error during login:', error);
+                        if (modalLoginError && modalLoginErrorText) {
+                            modalLoginErrorText.textContent = 'An error occurred. Please try again.';
+                            modalLoginError.classList.remove('hidden');
+                        }
+                    });
+                });
+            }
+
+            // Check if show_login is requested in the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('show_login') === 'true') {
+                if (loginModal) {
+                    loginModal.classList.remove('hidden');
+                }
+                const errorType = urlParams.get('error');
+                if (errorType && modalLoginError && modalLoginErrorText) {
+                    let errMsg = '';
+                    if (errorType === 'invalid') {
+                        errMsg = <?= json_encode(trans('admin_login_err_invalid')) ?>;
+                    } else if (errorType === 'empty') {
+                        errMsg = <?= json_encode(trans('admin_login_err_empty')) ?>;
+                    }
+                    if (errMsg) {
+                        modalLoginErrorText.textContent = errMsg;
+                        modalLoginError.classList.remove('hidden');
+                    }
+                }
+                
+                // Clean URL query parameters so they don't persist on page refresh
+                const cleanParams = new URLSearchParams(window.location.search);
+                cleanParams.delete('show_login');
+                cleanParams.delete('error');
+                cleanParams.delete('success');
+                const newSearch = cleanParams.toString();
+                const newUrl = window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash;
+                window.history.replaceState({}, document.title, newUrl);
             }
         });
     </script>

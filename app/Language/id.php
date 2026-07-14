@@ -105,7 +105,7 @@ return [
     'admin_stat_waiting' => 'Menunggu',
     'admin_stat_processing' => 'Diproses',
     'admin_stat_completed' => 'Selesai',
-    'admin_stat_revenue' => 'Total Pendapatan',
+    'admin_stat_revenue' => 'Pendapatan Hari Ini',
 
     // Admin Dashboard - Tables & Common
     'admin_tab_waiting' => 'Menunggu',

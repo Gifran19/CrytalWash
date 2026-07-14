@@ -7,8 +7,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = trim($_POST['password'] ?? '');
 
+    $is_ajax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || isset($_POST['ajax']);
+
     // Validate input
     if (empty($username) || empty($password)) {
+        if ($is_ajax) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'error' => 'empty',
+                'message' => trans('admin_login_err_empty')
+            ]);
+            exit;
+        }
         header('Location: index.php?page=login&error=empty');
         exit;
     }
@@ -26,6 +37,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['admin_username']  = $kasir['username'];
             $_SESSION['admin_nama']      = $kasir['username'];
 
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'redirect' => 'index.php?page=admin_dashboard'
+                ]);
+                exit;
+            }
             header('Location: index.php?page=admin_dashboard');
             exit;
         } elseif ($username === 'admin' && $password === 'admin123') {
@@ -35,10 +54,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['admin_username']  = 'admin';
             $_SESSION['admin_nama']      = 'Administrator';
 
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'redirect' => 'index.php?page=admin_dashboard'
+                ]);
+                exit;
+            }
             header('Location: index.php?page=admin_dashboard');
             exit;
         } else {
             // Invalid credentials
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'invalid',
+                    'message' => trans('admin_login_err_invalid')
+                ]);
+                exit;
+            }
             header('Location: index.php?page=login&error=invalid');
             exit;
         }
@@ -50,10 +86,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['admin_username']  = 'admin';
             $_SESSION['admin_nama']      = 'Administrator';
 
+            if ($is_ajax) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'redirect' => 'index.php?page=admin_dashboard'
+                ]);
+                exit;
+            }
             header('Location: index.php?page=admin_dashboard');
             exit;
         }
 
+        if ($is_ajax) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'error' => 'invalid',
+                'message' => trans('admin_login_err_invalid')
+            ]);
+            exit;
+        }
         header('Location: index.php?page=login&error=invalid');
         exit;
     }

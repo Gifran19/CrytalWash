@@ -3,7 +3,7 @@
 session_start();
 
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header('Location: index.php?page=login');
+    header('Location: index.php?page=home&show_login=true');
     exit;
 }
 
@@ -34,6 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif ($new_status === 'completed') {
                 $stmt = $conn->prepare("UPDATE antrian SET status = 'selesai' WHERE id_booking = :id_booking");
                 $stmt->execute(['id_booking' => $id_booking]);
+                
+                // Automatically mark payment as paid upon booking completion
+                $stmt = $conn->prepare("UPDATE pembayaran SET status = 'paid' WHERE id_booking = :id_booking");
+                $stmt->execute(['id_booking' => $id_booking]);
+
                 $_SESSION['sweetalert_success'] = 'Booking berhasil diselesaikan!';
             }
         } catch (PDOException $e) {

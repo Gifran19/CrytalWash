@@ -1,7 +1,7 @@
 <?php
 $hide_navbar = true;
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header('Location: index.php?page=login');
+    header('Location: index.php?page=home&show_login=true');
     exit;
 }
 require_once BASE_PATH . '/app/Config/database.php';
@@ -60,15 +60,21 @@ if ($current_section === 'beranda') {
         $stmt_count_selesai->execute(['bulan' => $current_month]);
         $count_selesai = (int)($stmt_count_selesai->fetch()['total'] ?? 0);
 
-        // Today's revenue
-        $stmt = $conn->prepare("SELECT COALESCE(SUM(t.total), 0) as total FROM transaksi t WHERE DATE(t.tanggal) = :tgl");
+        // Today's revenue (only completed bookings or paid payments)
+        $stmt = $conn->prepare("SELECT COALESCE(SUM(t.total), 0) as total 
+            FROM transaksi t 
+            JOIN booking b ON t.id_booking = b.id_booking
+            JOIN pembayaran p ON b.id_booking = p.id_booking
+            WHERE DATE(t.tanggal) = :tgl AND (b.status = 'completed' OR p.status = 'paid')");
         $stmt->execute(['tgl' => date('Y-m-d')]);
         $total_pendapatan_hari = (int)($stmt->fetch()['total'] ?? 0);
 
-        // Monthly revenue trend (last 6 months)
+        // Monthly revenue trend (last 6 months - only completed or paid)
         $stmt = $conn->query("SELECT TO_CHAR(t.tanggal, 'YYYY-MM') as bulan, SUM(t.total) as total
             FROM transaksi t
-            WHERE t.tanggal >= CURRENT_DATE - INTERVAL '6 months'
+            JOIN booking b ON t.id_booking = b.id_booking
+            JOIN pembayaran p ON b.id_booking = p.id_booking
+            WHERE t.tanggal >= CURRENT_DATE - INTERVAL '6 months' AND (b.status = 'completed' OR p.status = 'paid')
             GROUP BY TO_CHAR(t.tanggal, 'YYYY-MM')
             ORDER BY bulan ASC");
         $monthly_revenue = $stmt->fetchAll();

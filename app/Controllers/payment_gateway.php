@@ -44,6 +44,32 @@ if ($is_post || $is_confirm_qris) {
     $payment_status = 'unpaid';
     $transaction_prefix = ($method === 'QRIS') ? 'QRS' : 'CSH';
 
+    // Jika booking sudah dibuat sebelumnya (user kembali dari halaman QRIS ke pilihan pembayaran),
+    // perbarui metode pembayaran saja daripada menduplikat pesanan baru.
+    $id_booking = $_SESSION['order']['id_booking'] ?? null;
+    if ($id_booking) {
+        try {
+            $conn->beginTransaction();
+            // Update Pembayaran
+            $stmt = $conn->prepare("UPDATE pembayaran SET metode = :metode WHERE id_booking = :id_booking");
+            $stmt->execute(['metode' => $method, 'id_booking' => $id_booking]);
+            $conn->commit();
+
+            $_SESSION['order']['payment_method']  = $method;
+            $_SESSION['order']['transaction_id']  = $transaction_prefix . '-' . strtoupper(uniqid());
+
+            if ($method === 'QRIS') {
+                header("Location: index.php?page=qris_checkout&id_booking=" . $id_booking);
+            } else {
+                header("Location: index.php?page=finish");
+            }
+            exit();
+        } catch (PDOException $e) {
+            $conn->rollBack();
+            die("Gagal memperbarui metode pembayaran: " . $e->getMessage());
+        }
+    }
+
     // Definisikan durasi estimasi berdasarkan layanan
     $service_durations = [
         'Quick Wash'      => 30,

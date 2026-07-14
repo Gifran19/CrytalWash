@@ -29,7 +29,7 @@ $services_mobil = [];
 $services_motor = [];
 foreach ($all_services as $s) {
     $jenis = strtolower($s['jenis_kendaraan']);
-    if ($jenis === 'motor' || $jenis === 'motorcycle') {
+    if (strpos($jenis, 'motor') !== false || strpos($jenis, 'motorcycle') !== false) {
         $services_motor[] = $s;
     } else {
         $services_mobil[] = $s;

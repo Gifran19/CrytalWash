@@ -5,7 +5,7 @@
  */
 
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header('Location: index.php?page=login');
+    header('Location: index.php?page=home&show_login=true');
     exit;
 }
 

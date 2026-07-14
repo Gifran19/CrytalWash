@@ -1,15 +1,16 @@
 <?php
-$hide_navbar = true; // Hide global navbar on login page
-
-// If admin is already logged in, redirect to admin dashboard
-if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
-    header('Location: index.php?page=admin_dashboard');
-    exit;
-}
-
-// Capture error/success messages
+// Deprecated page - redirecting to home with login modal active
 $error = $_GET['error'] ?? null;
 $success = $_GET['success'] ?? null;
+$query = 'show_login=true';
+if ($error) {
+    $query .= '&error=' . urlencode($error);
+}
+if ($success) {
+    $query .= '&success=' . urlencode($success);
+}
+header('Location: index.php?page=home&' . $query);
+exit;
 ?>
 <?php include BASE_PATH . '/app/Views/layouts/header.php'; ?>
 

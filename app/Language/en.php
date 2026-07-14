@@ -105,7 +105,7 @@ return [
     'admin_stat_waiting' => 'Waiting',
     'admin_stat_processing' => 'Processing',
     'admin_stat_completed' => 'Completed',
-    'admin_stat_revenue' => 'Total Revenue',
+    'admin_stat_revenue' => 'Today\'s Revenue',
 
     // Admin Dashboard - Tables & Common
     'admin_tab_waiting' => 'Waiting',
