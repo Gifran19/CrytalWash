@@ -203,4 +203,50 @@ return [
     'admin_star' => 'Bintang',
     'admin_filter_search' => 'Cari Kata Kunci',
     'admin_placeholder_search_review' => 'Cari nama atau ulasan...',
+
+    // Home - Highlights (Baru)
+    'hl_clean' => 'Jaminan Bersih Kilap',
+    'hl_fast' => 'Proses Cepat & Tepat',
+    'hl_queue' => 'Live Antrian Digital',
+    'hl_payment' => 'Pembayaran QRIS & Cash',
+
+    // Home - Vehicle Headers & Examples (Baru)
+    'srv_motor_header' => 'Layanan Motor',
+    'srv_mobil_header' => 'Layanan Mobil',
+    'srv_motor_std_desc' => 'Layanan cuci untuk kendaraan roda dua berdimensi kompak dengan kapasitas mesin kecil hingga menengah. Proses pengerjaan lebih cepat dan praktis, mencakup pembersihan bodi, velg, dan semir ban.',
+    'srv_motor_big_desc' => 'Layanan khusus untuk motor maxi scooter, motor sport, atau motor dengan bodi lebar. Memerlukan ketelitian ekstra untuk menjangkau celah bodi yang lebih kompleks dan area mesin yang terbuka.',
+    'srv_mobil_std_desc' => 'Perawatan cuci luar-dalam untuk kendaraan roda empat berukuran kompak hingga menengah (City Car, Hatchback, Compact SUV, dan Low MPV). Cocok untuk pembersihan harian yang efisien.',
+    'srv_mobil_big_desc' => 'Penanganan cuci ekstra untuk kendaraan berdimensi luas, panjang, dan tinggi (Large SUV, Premium MPV, Double Cabin). Membutuhkan lebih banyak sampo, waktu pengerjaan, dan pembersihan kabin interior yang lebih luas.',
+    'srv_example_vehicle' => 'CONTOH KENDARAAN:',
+
+    // Booking Step 2 (Baru)
+    'bk_step2_title' => 'Pesan Cucian Anda',
+    'bk_step2_subtitle' => 'Lengkapi detail kendaraan dan pilih layanan perawatan terbaik.',
+    'bk_step2_choose_vehicle' => 'Pilih Jenis Kendaraan',
+    'bk_step2_car' => 'Mobil',
+    'bk_step2_motor' => 'Motor',
+    'bk_step2_choose_service' => 'Pilih Layanan / Kategori',
+    'bk_step2_total_price' => 'Total Harga Layanan',
+    'bk_step2_plate' => 'Nomor Plat',
+    'bk_step2_plate_placeholder' => 'Contoh: B 1234 ABC',
+    'bk_step2_plate_title' => 'Contoh format yang benar: B 1234 ABC',
+    'bk_step2_datetime' => 'Tanggal & Waktu',
+
+    // Finish Page & Review (Baru)
+    'fin_detail_title' => 'Detail Booking',
+    'fin_btn_invoice' => 'Cetak Invoice',
+    'fin_label_name' => 'Nama',
+    'fin_label_vehicle' => 'Kendaraan',
+    'fin_label_date' => 'Tanggal',
+    'fin_label_service' => 'Layanan',
+    'fin_label_email' => 'Email',
+    'fin_label_total' => 'Total Harga',
+    'fin_est_time' => 'Estimasi Waktu +- %d Menit',
+    'fin_est_ready' => 'Perkiraan kendaraan siap diambil pada:',
+    'fin_rev_title' => 'Bagaimana Pengalaman Booking Anda?',
+    'fin_rev_subtitle' => 'Bantu kami untuk terus meningkatkan kualitas layanan.',
+    'fin_rev_placeholder' => 'Tuliskan saran atau masukan Anda di sini... (Opsional)',
+    'fin_rev_submit' => 'Kirim Ulasan & Kembali',
+    'fin_rev_skip' => 'Lewati & Kembali ke Beranda',
+    'fin_err_id' => 'ID Booking tidak ditemukan.',
 ];

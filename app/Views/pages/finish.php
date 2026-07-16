@@ -51,39 +51,39 @@ $formatted_finish_time = date('H:i', $estimated_finish_time) . ' WIB';
             <!-- Card 1: Detail Booking -->
             <div class="bg-white dark:bg-gray-800 border border-transparent dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 flex-grow transition-colors duration-300">
                 <div class="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-4 mb-6">
-                    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Detail Booking</h2>
-                    <a href="index.php?page=invoice" class="text-xs font-bold bg-olive-100 dark:bg-olive-900/40 text-olive-700 dark:text-olive-300 px-3 py-1.5 rounded-lg hover:bg-olive-200 dark:hover:bg-olive-900/60 transition-colors">Cetak Invoice</a>
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100"><?= trans('fin_detail_title') ?></h2>
+                    <a href="index.php?page=invoice" class="text-xs font-bold bg-olive-100 dark:bg-olive-900/40 text-olive-700 dark:text-olive-300 px-3 py-1.5 rounded-lg hover:bg-olive-200 dark:hover:bg-olive-900/60 transition-colors"><?= trans('fin_btn_invoice') ?></a>
                 </div>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <!-- Data 1 -->
                     <div>
-                        <p class="text-[11px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Nama</p>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1.5"><?= trans('fin_label_name') ?></p>
                         <div class="bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 rounded-md p-3 text-sm font-medium text-gray-800 dark:text-gray-100"><?= htmlspecialchars($name) ?></div>
                     </div>
                     <!-- Data 2 -->
                     <div>
-                        <p class="text-[11px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Kendaraan</p>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1.5"><?= trans('fin_label_vehicle') ?></p>
                         <div class="bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 rounded-md p-3 text-sm font-medium text-gray-800 dark:text-gray-100"><?= htmlspecialchars($vehicle) ?></div>
                     </div>
                     <!-- Data 3 -->
                     <div>
-                        <p class="text-[11px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Tanggal</p>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1.5"><?= trans('fin_label_date') ?></p>
                         <div class="bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 rounded-md p-3 text-sm font-medium text-gray-800 dark:text-gray-100"><?= date('d M Y', strtotime($date)) ?></div>
                     </div>
                     <!-- Data 4 -->
                     <div>
-                        <p class="text-[11px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Layanan</p>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1.5"><?= trans('fin_label_service') ?></p>
                         <div class="bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 rounded-md p-3 text-sm font-medium text-gray-800 dark:text-gray-100"><?= htmlspecialchars($selected_service) ?></div>
                     </div>
                     <!-- Data 5 -->
                     <div class="sm:col-span-2">
-                        <p class="text-[11px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Email</p>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1.5"><?= trans('fin_label_email') ?></p>
                         <div class="bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 rounded-md p-3 text-sm font-medium text-gray-800 dark:text-gray-100"><?= htmlspecialchars($email) ?></div>
                     </div>
                     <!-- Data 6 -->
                     <div class="sm:col-span-2">
-                        <p class="text-[11px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Total Harga</p>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider mb-1.5"><?= trans('fin_label_total') ?></p>
                         <div class="bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 rounded-md p-3 text-lg font-bold text-[#4a5d23] dark:text-olive-400">Rp <?= number_format($total, 0, ',', '.') ?></div>
                     </div>
                 </div>
@@ -95,11 +95,11 @@ $formatted_finish_time = date('H:i', $estimated_finish_time) . ' WIB';
                 <div class="w-14 h-14 bg-[#4a5d23]/10 dark:bg-olive-900/30 rounded-full flex items-center justify-center mb-4">
                     <svg class="w-8 h-8 text-[#4a5d23] dark:text-olive-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
-                <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-3">Estimasi Waktu +- <?= $work_duration ?> Menit</h3>
+                <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-3"><?= sprintf(trans('fin_est_time'), $work_duration) ?></h3>
                 
                 <!-- Kotak Hijau Muda -->
                 <div class="bg-[#4a5d23]/10 dark:bg-olive-900/20 text-[#4a5d23] dark:text-olive-400 px-5 py-3 rounded-lg text-sm font-medium w-full mt-1 border border-[#4a5d23]/20 dark:border-olive-900/30">
-                    Perkiraan kendaraan siap diambil pada: <br class="sm:hidden"><strong class="text-base ml-1"><?= $formatted_finish_time ?></strong>
+                    <?= trans('fin_est_ready') ?> <br class="sm:hidden"><strong class="text-base ml-1"><?= $formatted_finish_time ?></strong>
                 </div>
             </div>
 
@@ -108,8 +108,8 @@ $formatted_finish_time = date('H:i', $estimated_finish_time) . ' WIB';
         <!-- ===== KOLOM KANAN: Form Ulasan ===== -->
         <div class="bg-white dark:bg-gray-800 border border-transparent dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 flex flex-col h-full transition-colors duration-300">
             <div class="text-center mb-8 mt-4">
-                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-3">Bagaimana Pengalaman Booking Anda?</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Bantu kami untuk terus meningkatkan kualitas layanan.</p>
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-3"><?= trans('fin_rev_title') ?></h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400"><?= trans('fin_rev_subtitle') ?></p>
             </div>
 
             <form action="index.php?action=submit_review" method="POST" class="flex-grow flex flex-col">
@@ -117,7 +117,7 @@ $formatted_finish_time = date('H:i', $estimated_finish_time) . ' WIB';
                     <input type="hidden" name="id_booking" value="<?= htmlspecialchars($id_booking) ?>">
                 <?php else: ?>
                     <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg text-sm text-center mb-6">
-                        ID Booking tidak ditemukan.
+                        <?= trans('fin_err_id') ?>
                     </div>
                 <?php endif; ?>
 
@@ -136,18 +136,18 @@ $formatted_finish_time = date('H:i', $estimated_finish_time) . ' WIB';
                 <!-- Form Saran -->
                 <div class="flex-grow flex flex-col justify-between">
                     <div class="mb-6">
-                        <textarea name="komentar" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg p-4 text-sm focus:ring-2 focus:ring-[#4a5d23] focus:border-transparent outline-none resize-none placeholder:text-gray-400 dark:placeholder:text-gray-500" rows="5" placeholder="Tuliskan saran atau masukan Anda di sini... (Opsional)"></textarea>
+                        <textarea name="komentar" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg p-4 text-sm focus:ring-2 focus:ring-[#4a5d23] focus:border-transparent outline-none resize-none placeholder:text-gray-400 dark:placeholder:text-gray-500" rows="5" placeholder="<?= trans('fin_rev_placeholder') ?>"></textarea>
                     </div>
 
                     <!-- Bagian Tombol -->
                     <div class="space-y-3">
                         <!-- Tombol Kirim Ulasan -->
                         <button type="submit" <?= !$id_booking ? 'disabled' : '' ?> class="w-full bg-olive-700 hover:bg-olive-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
-                            Kirim Ulasan & Kembali
+                            <?= trans('fin_rev_submit') ?>
                         </button>
                         <!-- Tombol Kembali ke Home (Lewati) -->
                         <a href="index.php?page=home" class="w-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 text-gray-700 font-bold py-3.5 px-4 rounded-xl transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 mt-3">
-                            Lewati & Kembali ke Beranda
+                            <?= trans('fin_rev_skip') ?>
                         </a>
                     </div>
                 </div>

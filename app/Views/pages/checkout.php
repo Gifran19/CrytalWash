@@ -32,7 +32,7 @@ $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
             </div>
             
             <!-- Modern Stepper -->
-            <div class="w-full md:w-1/2 max-w-lg">
+            <div class="w-full md:w-1/2 max-w-lg px-4 md:px-0 mb-4 pb-6 md:mb-0 md:pb-0">
                 <div class="relative flex justify-between items-center w-full">
                     <!-- Background Line -->
                     <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-100 dark:bg-gray-800 rounded-full z-0 transition-colors duration-300"></div>

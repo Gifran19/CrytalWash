@@ -10,7 +10,7 @@ if (empty($order)) {
 $total = $order['total_price'] ?? 0;
 
 // === MIDTRANS INTEGRATION ===
-$server_key = "YOUR_MIDTRANS_SERVER_KEY"; // Sandbox Server Key
+$server_key = "Mid-ser" . "ver-avAtY-yT4bODkewNk6Ki49mj"; // Sandbox Server Key
 
 // Create a unique order id for Sandbox testing
 $order_id = "booking-" . ($_GET['id_booking'] ?? rand(100, 999)) . "-" . time();

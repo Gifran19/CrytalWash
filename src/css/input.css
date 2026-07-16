@@ -22,9 +22,68 @@
     @apply inline-block border-2 border-olive-700 text-olive-700 px-8 py-3 rounded-full font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:bg-olive-700 hover:text-white;
   }
   .form-input {
-    @apply w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-olive-400 focus:border-olive-700 transition-all duration-300 text-sm font-sans text-gray-700 bg-white placeholder-gray-400;
+    @apply w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-olive-400 focus:border-olive-700 transition-all duration-300 font-sans text-gray-700 bg-white placeholder-gray-400;
   }
   .card {
     @apply bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300;
   }
 }
+
+/* =====================================================
+   AKSESIBILITAS: Penyesuaian Font untuk Usia 25-60 Tahun
+   Raw CSS (di luar @layer) - selalu disertakan di output
+   ===================================================== */
+
+/* Base font-size naik dari 16px ke 17px — semua rem ikut naik proporsional */
+html {
+  font-size: 17px;
+}
+
+/* Body: line-height dan letter-spacing lebih nyaman dibaca */
+body {
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+/* Heading: line-height lebih rapat agar terasa premium */
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.3;
+}
+
+/* Form elements: ukuran font cukup besar dan mudah dibaca/disentuh */
+input,
+select,
+textarea {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Tombol: ukuran font dan tinggi minimum agar mudah diklik */
+button {
+  font-size: 1rem;
+  min-height: 44px;
+}
+
+/* Label form lebih besar */
+label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+/* Placeholder teks lebih mudah dibaca */
+::placeholder {
+  opacity: 0.65;
+}
+
+/* text-xs tetap terbaca: naik dari 12px ke 14px */
+.text-xs {
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+
+/* text-sm tetap terbaca: naik dari 14px ke 16px */
+.text-sm {
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+}
+

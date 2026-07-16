@@ -5,7 +5,7 @@ require_once BASE_PATH . '/app/Helpers/functions.php';
 
 /**
  * CrystalWash - Submit Review
- * Menyimpan feedback/ulasan ke database dan menyelesaikan proses booking
+ * Menyimpan feedback/ulasan ke database dan mengarahkan kembali ke Beranda
  */
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $conn->beginTransaction();
 
             if (!$is_skip) {
-                // 1. INSERT Feedback
+                // INSERT Feedback ke database
                 $stmt = $conn->prepare("INSERT INTO feedback (rating, komentar, id_booking)
                     VALUES (:rating, :komentar, :id_booking)");
                 $stmt->execute([
@@ -35,21 +35,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 ]);
             }
 
-            // Status is now handled exclusively by the Admin Dashboard.
-            // Customers reviewing does not automatically mark it completed.
+            // Status booking ditangani oleh Admin Dashboard saja.
+            // Customer submit ulasan tidak otomatis mengubah status.
 
             $conn->commit();
         } catch (PDOException $e) {
             $conn->rollBack();
-            // Jika sudah ada feedback (duplicate), abaikan error dan lanjut
+            // Jika sudah ada feedback (duplicate key), abaikan error dan lanjut
             if (strpos($e->getMessage(), 'unique') === false) {
                 die("Gagal menyimpan ulasan: " . $e->getMessage());
             }
         }
     }
 
-    // Arahkan ke halaman Cetak Invoice atau Home setelah selesai
-    header("Location: index.php?page=invoice");
+    // Setelah kirim ulasan, kembali ke Beranda (BUKAN invoice)
+    header("Location: index.php?page=home&review=sent");
     exit();
 }
 ?>

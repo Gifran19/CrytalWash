@@ -149,6 +149,20 @@ $laporan = [];
 $filter_month = $_GET['month'] ?? date('Y-m');
 $search = $_GET['search'] ?? '';
 
+// Sorting — whitelist kolom yang boleh di-sort untuk mencegah SQL injection
+$sort_allowed = [
+    'waktu'    => "COALESCE(t.tanggal, b.tanggal::timestamptz)",
+    'pelanggan'=> "p.nama",
+    'kendaraan'=> "k.jenis",
+    'layanan'  => "l.nama_layanan",
+    'metode'   => "py.metode",
+    'total'    => "py.total",
+];
+$sort_key   = isset($_GET['sort']) && array_key_exists($_GET['sort'], $sort_allowed) ? $_GET['sort'] : 'waktu';
+$sort_order = (isset($_GET['order']) && strtolower($_GET['order']) === 'desc') ? 'DESC' : 'ASC';
+$sort_col   = $sort_allowed[$sort_key];  // kolom SQL yang aman
+$next_order = ($sort_order === 'ASC') ? 'desc' : 'asc'; // untuk toggle di header
+
 if ($current_section === 'laporan') {
     try {
         $limit = 20;
@@ -157,17 +171,26 @@ if ($current_section === 'laporan') {
         $offset = ($page - 1) * $limit;
 
         // Query for count and sum
+        // Waktu selesai = t.tanggal (transaksi.tanggal = Timestamptz, menyimpan jam aktual)
+        // b.tanggal hanya Date, sehingga jam selalu 00:00
         $count_query = "SELECT COUNT(*) as total_rows, COALESCE(SUM(py.total), 0) as total_revenue
             FROM booking b
             JOIN pelanggan p ON b.id_pelanggan = p.id_pelanggan
             JOIN kendaraan k ON b.id_kendaraan = k.id_kendaraan
+            JOIN layanan l ON b.id_layanan = l.id_layanan
             LEFT JOIN pembayaran py ON b.id_booking = py.id_booking
+            LEFT JOIN transaksi t ON b.id_booking = t.id_booking
             WHERE b.status = 'completed' AND TO_CHAR(b.tanggal, 'YYYY-MM') = :month";
             
         $params_count = ['month' => $filter_month];
 
         if (!empty($search)) {
-            $count_query .= " AND (p.nama ILIKE :search OR k.no_plat ILIKE :search)";
+            // Pencarian di semua kolom: pelanggan, plat, jenis kendaraan, layanan, metode, waktu selesai
+            // TO_CHAR menghasilkan format misal "02 Jul 2026 14:30" agar bisa dicari "02 Jul"
+            $count_query .= " AND (p.nama ILIKE :search OR k.no_plat ILIKE :search
+                OR k.jenis ILIKE :search OR l.nama_layanan ILIKE :search
+                OR COALESCE(py.metode,'') ILIKE :search
+                OR TO_CHAR(COALESCE(t.tanggal, b.tanggal::timestamptz), 'DD Mon YYYY HH24:MI') ILIKE :search)";
             $params_count['search'] = '%' . $search . '%';
         }
 
@@ -179,8 +202,11 @@ if ($current_section === 'laporan') {
         $grand_total = $count_data['total_revenue'];
         $total_pages = ceil($total_rows / $limit);
 
-        // Query for data
-        $query = "SELECT t.id_transaksi, b.tanggal, p.nama as pelanggan, k.no_plat, k.jenis, l.nama_layanan, py.total, py.metode
+        // Query for data (paginated — untuk tampilan di layar)
+        // Gunakan t.tanggal sebagai waktu_selesai karena tipe Timestamptz (ada jam)
+        $query = "SELECT t.id_transaksi,
+                COALESCE(t.tanggal, b.tanggal::timestamptz) as waktu_selesai,
+                p.nama as pelanggan, k.no_plat, k.jenis, l.nama_layanan, py.total, py.metode
             FROM booking b
             JOIN pelanggan p ON b.id_pelanggan = p.id_pelanggan
             JOIN kendaraan k ON b.id_kendaraan = k.id_kendaraan
@@ -190,10 +216,13 @@ if ($current_section === 'laporan') {
             WHERE b.status = 'completed' AND TO_CHAR(b.tanggal, 'YYYY-MM') = :month";
 
         if (!empty($search)) {
-            $query .= " AND (p.nama ILIKE :search OR k.no_plat ILIKE :search)";
+            $query .= " AND (p.nama ILIKE :search OR k.no_plat ILIKE :search
+                OR k.jenis ILIKE :search OR l.nama_layanan ILIKE :search
+                OR COALESCE(py.metode,'') ILIKE :search
+                OR TO_CHAR(COALESCE(t.tanggal, b.tanggal::timestamptz), 'DD Mon YYYY HH24:MI') ILIKE :search)";
         }
 
-        $query .= " ORDER BY b.tanggal DESC LIMIT :limit OFFSET :offset";
+        $query .= " ORDER BY {$sort_col} {$sort_order} LIMIT :limit OFFSET :offset";
 
         $stmt = $conn->prepare($query);
         $stmt->bindValue(':month', $filter_month);
@@ -205,6 +234,35 @@ if ($current_section === 'laporan') {
         
         $stmt->execute();
         $laporan = $stmt->fetchAll();
+
+        // Query untuk CETAK — ambil SEMUA data bulan ini tanpa pagination
+        $query_all = "SELECT t.id_transaksi,
+                COALESCE(t.tanggal, b.tanggal::timestamptz) as waktu_selesai,
+                p.nama as pelanggan, k.no_plat, k.jenis, l.nama_layanan, py.total, py.metode
+            FROM booking b
+            JOIN pelanggan p ON b.id_pelanggan = p.id_pelanggan
+            JOIN kendaraan k ON b.id_kendaraan = k.id_kendaraan
+            JOIN layanan l ON b.id_layanan = l.id_layanan
+            LEFT JOIN transaksi t ON b.id_booking = t.id_booking
+            LEFT JOIN pembayaran py ON b.id_booking = py.id_booking
+            WHERE b.status = 'completed' AND TO_CHAR(b.tanggal, 'YYYY-MM') = :month";
+
+        if (!empty($search)) {
+            $query_all .= " AND (p.nama ILIKE :search OR k.no_plat ILIKE :search
+                OR k.jenis ILIKE :search OR l.nama_layanan ILIKE :search
+                OR COALESCE(py.metode,'') ILIKE :search
+                OR TO_CHAR(COALESCE(t.tanggal, b.tanggal::timestamptz), 'DD Mon YYYY HH24:MI') ILIKE :search)";
+        }
+        $query_all .= " ORDER BY {$sort_col} {$sort_order}";
+
+        $stmt_all = $conn->prepare($query_all);
+        $stmt_all->bindValue(':month', $filter_month);
+        if (!empty($search)) {
+            $stmt_all->bindValue(':search', '%' . $search . '%');
+        }
+        $stmt_all->execute();
+        $laporan_all = $stmt_all->fetchAll();
+
     } catch (PDOException $e) {
         error_log($e->getMessage());
     }
@@ -409,10 +467,38 @@ if ($current_section === 'ulasan') {
 
     @media (max-width: 768px) {
         .admin-layout { flex-direction: column; }
-        .admin-sidebar { width: 100%; min-width: 100%; flex-direction: row; flex-wrap: wrap; padding: 1rem; gap: 0.5rem; }
-        .admin-sidebar .brand { width: 100%; margin-bottom: 0.5rem; }
-        .admin-sidebar nav { flex-direction: row; flex-wrap: wrap; gap: 0.4rem; }
-        .sidebar-bottom { margin-top: 0; padding-top: 0; }
+        .admin-sidebar { width: 100%; min-width: 100%; flex-direction: column; padding: 1rem; gap: 0.5rem; }
+        .admin-sidebar .brand { width: auto; margin-bottom: 0; }
+        .admin-sidebar nav {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            width: 100%;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            -webkit-overflow-scrolling: touch;
+        }
+        .admin-sidebar nav::-webkit-scrollbar { display: none; }
+        .sidebar-link { white-space: nowrap; font-size: 0.8rem; padding: 0.5rem 0.8rem; }
+        .sidebar-bottom { display: none !important; }
+        
+        /* Table responsive density */
+        .admin-table th, .admin-table td {
+            padding: 0.75rem 0.5rem !important;
+            font-size: 0.75rem !important;
+        }
+        
+        /* Header elements stacking */
+        .card-header {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.75rem !important;
+        }
+        .card-header button, .card-header a {
+            width: 100% !important;
+            justify-content: center !important;
+        }
     }
 
     @media print {
@@ -477,11 +563,40 @@ if ($current_section === 'ulasan') {
     .dark .badge-unpaid { background: #7f1d1d; color: #fecaca; }
 </style>
 
+<?php
+    $current_lang = $_SESSION['lang'] ?? 'id';
+    $page_url = $_SERVER['REQUEST_URI'];
+    $url_base = preg_replace('/([&?])lang=[^&]+(&|$)/', '$1', $page_url);
+    $url_base = rtrim($url_base, '&?');
+    $url_id = $url_base . (strpos($url_base, '?') !== false ? '&' : '?') . 'lang=id';
+    $url_en = $url_base . (strpos($url_base, '?') !== false ? '&' : '?') . 'lang=en';
+?>
+
 <div class="admin-layout">
     <!-- Sidebar -->
     <aside class="admin-sidebar">
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center justify-between w-full mb-4 md:mb-8">
             <div class="brand" style="margin-bottom:0; padding-left:0;">CrystalWash</div>
+            
+            <!-- Mobile Settings & Logout (Only visible on mobile) -->
+            <div class="flex sm:hidden items-center gap-1.5">
+                <!-- Language Switcher -->
+                <div class="flex items-center gap-0.5 text-[10px] font-bold border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 p-0.5 rounded-full shadow-sm">
+                    <a href="<?= htmlspecialchars($url_id) ?>" class="px-2 py-0.5 rounded-full transition-colors duration-300 <?= $current_lang === 'id' ? 'bg-olive-700 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400' ?>">ID</a>
+                    <a href="<?= htmlspecialchars($url_en) ?>" class="px-2 py-0.5 rounded-full transition-colors duration-300 <?= $current_lang === 'en' ? 'bg-olive-700 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400' ?>">EN</a>
+                </div>
+                
+                <!-- Dark Mode Toggle -->
+                <button onclick="toggleTheme()" class="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300 text-gray-500 dark:text-gray-400" aria-label="Toggle Dark Mode">
+                    <svg class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <svg class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+
+                <!-- Logout -->
+                <a href="index.php?action=admin_logout" class="p-1.5 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors" title="<?= trans('admin_logout') ?>">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                </a>
+            </div>
         </div>
         <nav>
             <a href="index.php?page=admin_dashboard&section=beranda" class="sidebar-link <?= $current_section === 'beranda' ? 'active' : '' ?>"><?= trans('admin_nav_dashboard') ?></a>
@@ -495,8 +610,8 @@ if ($current_section === 'ulasan') {
     <!-- Main -->
     <div class="admin-main">
         <!-- Topbar -->
-        <header class="flex justify-between items-center mb-8 pb-4 border-b border-gray-200 dark:border-gray-800 bg-transparent">
-            <div>
+        <header class="hidden sm:flex justify-between items-center mb-8 pb-4 border-b border-gray-200 dark:border-gray-800 bg-transparent">
+            <div class="hidden sm:block">
                 <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 font-serif capitalize">
                     <?php
                         $section_title = 'Dashboard';
@@ -511,7 +626,7 @@ if ($current_section === 'ulasan') {
                     ?>
                 </h2>
             </div>
-            <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2 sm:gap-6 w-full sm:w-auto justify-between sm:justify-end">
                 <!-- Language Switcher -->
                 <?php
                     $current_lang = $_SESSION['lang'] ?? 'id';
@@ -522,7 +637,7 @@ if ($current_section === 'ulasan') {
                     $url_en = $url_base . (strpos($url_base, '?') !== false ? '&' : '?') . 'lang=en';
                 ?>
                 <div class="flex items-center gap-1 text-xs font-semibold border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 p-1 rounded-full shadow-sm">
-                    <div class="px-2 text-gray-400 dark:text-gray-500">
+                    <div class="px-2 text-gray-400 dark:text-gray-500 hidden sm:block">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
                     <a href="<?= htmlspecialchars($url_id) ?>" class="px-3 py-1 rounded-full transition-colors duration-300 <?= $current_lang === 'id' ? 'bg-olive-700 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-olive-700 dark:hover:text-olive-400' ?>">ID</a>
@@ -538,14 +653,14 @@ if ($current_section === 'ulasan') {
                 </button>
 
                 <!-- User Profile & Logout -->
-                <div class="flex items-center gap-3 border-l border-gray-200 dark:border-gray-700 pl-6">
+                <div class="flex items-center gap-2 sm:gap-3 border-l border-gray-200 dark:border-gray-700 pl-2 sm:pl-6">
                     <div class="flex items-center gap-2">
                         <div class="w-8 h-8 rounded-full bg-olive-100 flex items-center justify-center text-olive-700 font-bold text-sm">
                             <?= strtoupper(substr($admin_nama, 0, 1)) ?>
                         </div>
                         <span class="text-sm text-gray-700 dark:text-gray-200 font-medium hidden sm:inline-block"><?= trans('admin_hello') ?>, <?= htmlspecialchars($admin_nama) ?></span>
                     </div>
-                    <a href="index.php?action=admin_logout" class="text-sm font-semibold text-red-500 hover:text-red-700 transition-colors ml-2 flex items-center gap-1">
+                    <a href="index.php?action=admin_logout" class="text-sm font-semibold text-red-500 hover:text-red-700 transition-colors ml-1 sm:ml-2 flex items-center gap-1" title="<?= trans('admin_logout') ?>">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                         <span class="hidden sm:inline-block"><?= trans('admin_logout') ?></span>
                     </a>
@@ -571,12 +686,18 @@ if ($current_section === 'ulasan') {
             .stat-card .stat-icon.green { background: #dcfce7; color: #16a34a; }
             .stat-card .stat-icon.purple { background: #f3e8ff; color: #9333ea; }
 
-            .tab-nav { display: flex; gap: 0; border-bottom: 2px solid #f3f4f6; margin-bottom: 1.5rem; }
+            .tab-nav {
+                display: flex; gap: 0; border-bottom: 2px solid #f3f4f6; margin-bottom: 1.5rem;
+                overflow-x: auto; -webkit-overflow-scrolling: touch;
+                -ms-overflow-style: none; scrollbar-width: none;
+            }
+            .tab-nav::-webkit-scrollbar { display: none; }
             .tab-btn {
                 padding: 1rem 1.5rem; font-size: 0.95rem; font-weight: 600;
                 background: none; border: none; border-bottom: 2px solid transparent;
                 color: #6b7280; cursor: pointer; transition: all 0.3s ease; margin-bottom: -2px;
                 font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 0.5rem;
+                white-space: nowrap;
             }
             .tab-btn:hover { color: #374151; }
             .tab-btn.active { color: #4b5320; border-bottom-color: #4b5320; }
@@ -657,7 +778,18 @@ if ($current_section === 'ulasan') {
                     echo '<td>' . htmlspecialchars($bk['nama']) . '</td>';
                     echo '<td>' . htmlspecialchars($bk['jenis']) . ' (' . htmlspecialchars($bk['no_plat']) . ')</td>';
                     echo '<td>' . htmlspecialchars($bk['nama_layanan']) . '</td>';
-                    echo '<td>' . ($bk['nomor_antrian'] ?? '-') . '</td>';
+                    // Tampilkan nomor antrian dengan prefix: M- untuk Motor, C- untuk Mobil
+                    if ($bk['nomor_antrian']) {
+                        $jenis_lower = strtolower($bk['jenis'] ?? '');
+                        $is_motor_bk = (strpos($jenis_lower, 'motor') !== false || strpos($jenis_lower, 'motorcycle') !== false);
+                        $prefix_bk = $is_motor_bk ? 'M' : 'C';
+                        $nomor_display = $prefix_bk . '-' . str_pad($bk['nomor_antrian'], 2, '0', STR_PAD_LEFT);
+                        $badge_bg = $is_motor_bk ? '#dcfce7' : '#dbeafe';
+                        $badge_color = $is_motor_bk ? '#166534' : '#1e40af';
+                        echo '<td><span style="background:' . $badge_bg . ';color:' . $badge_color . ';padding:0.2rem 0.6rem;border-radius:9999px;font-size:0.75rem;font-weight:700;font-family:monospace;">' . $nomor_display . '</span></td>';
+                    } else {
+                        echo '<td><span style="color:#9ca3af;">-</span></td>';
+                    };
                     echo '<td><span class="badge ' . $badge_class . '">' . htmlspecialchars($status_label) . '</span></td>';
 
                     echo '<td>';
@@ -674,7 +806,13 @@ if ($current_section === 'ulasan') {
                             // COD/Tunai dan belum lunas → tombol Bayar (buka modal, sekaligus selesai)
                             $btnData = htmlspecialchars(json_encode([
                                 'id_booking' => $bk['id_booking'],
-                                'nomor_antrian' => ($bk['nomor_antrian'] ? date('Y-m-d', strtotime($bk['tanggal'])) . '/' . $bk['nomor_antrian'] : '-'),
+                                'nomor_antrian' => (function() use ($bk) {
+                                    if (!$bk['nomor_antrian']) return '-';
+                                    $jenis_lower = strtolower($bk['jenis'] ?? '');
+                                    $is_motor_btn = (strpos($jenis_lower, 'motor') !== false || strpos($jenis_lower, 'motorcycle') !== false);
+                                    $pfx = $is_motor_btn ? 'M' : 'C';
+                                    return $pfx . '-' . str_pad($bk['nomor_antrian'], 2, '0', STR_PAD_LEFT);
+                                })(),
                                 'nama' => $bk['nama'],
                                 'no_plat' => $bk['no_plat'],
                                 'jenis' => $bk['jenis'],
@@ -726,12 +864,23 @@ if ($current_section === 'ulasan') {
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <style>
-            .swal2-confirm, .swal2-cancel {
+            .swal2-confirm {
+                background-color: #4b5320 !important;
                 color: #ffffff !important;
                 font-weight: bold !important;
                 letter-spacing: 0.5px;
                 padding: 0.6rem 1.5rem !important;
                 border-radius: 0.5rem !important;
+                border: none !important;
+            }
+            .swal2-cancel {
+                background-color: #9ca3af !important;
+                color: #ffffff !important;
+                font-weight: bold !important;
+                letter-spacing: 0.5px;
+                padding: 0.6rem 1.5rem !important;
+                border-radius: 0.5rem !important;
+                border: none !important;
             }
             .swal2-title {
                 color: #1a1a1a !important;
@@ -902,7 +1051,18 @@ if ($current_section === 'ulasan') {
                     <td><?= htmlspecialchars($bk['nama']) ?></td>
                     <td><?= htmlspecialchars($bk['jenis']) ?> (<?= htmlspecialchars($bk['no_plat']) ?>)</td>
                     <td><?= htmlspecialchars($bk['nama_layanan']) ?></td>
-                    <td><?= $bk['nomor_antrian'] ?? '-' ?></td>
+                    <td><?php
+                        if ($bk['nomor_antrian']) {
+                            $jl = strtolower($bk['jenis'] ?? '');
+                            $is_mtr = (strpos($jl, 'motor') !== false || strpos($jl, 'motorcycle') !== false);
+                            $pfx = $is_mtr ? 'M' : 'C';
+                            $bg = $is_mtr ? '#dcfce7' : '#dbeafe';
+                            $clr = $is_mtr ? '#166534' : '#1e40af';
+                            echo '<span style="background:' . $bg . ';color:' . $clr . ';padding:0.2rem 0.6rem;border-radius:9999px;font-size:0.75rem;font-weight:700;font-family:monospace;">' . $pfx . '-' . str_pad($bk['nomor_antrian'], 2, '0', STR_PAD_LEFT) . '</span>';
+                        } else {
+                            echo '<span style="color:#9ca3af;">-</span>';
+                        }
+                    ?></td>
                     <td><span class="badge <?= $bk['status'] === 'pending' ? 'badge-pending' : ($bk['status'] === 'in_progress' ? 'badge-progress' : 'badge-done') ?>"><?= $bk['status'] === 'pending' ? trans('admin_tab_waiting') : ($bk['status'] === 'in_progress' ? trans('admin_tab_processing') : trans('admin_tab_completed')) ?></span></td>
                 </tr>
                 <?php endforeach; ?>
@@ -940,7 +1100,13 @@ if ($current_section === 'ulasan') {
                             <?php
                                 $btnData = htmlspecialchars(json_encode([
                                     'id_booking' => $tr['id_booking'],
-                                    'nomor_antrian' => ($tr['nomor_antrian'] ? date('Y-m-d', strtotime($tr['tanggal'])) . '/' . $tr['nomor_antrian'] : '-'),
+                                    'nomor_antrian' => (function() use ($tr) {
+                                        if (!$tr['nomor_antrian']) return '-';
+                                        $jl_tr = strtolower($tr['jenis'] ?? '');
+                                        $is_mtr_tr = (strpos($jl_tr, 'motor') !== false || strpos($jl_tr, 'motorcycle') !== false);
+                                        $pfx_tr = $is_mtr_tr ? 'M' : 'C';
+                                        return $pfx_tr . '-' . str_pad($tr['nomor_antrian'], 2, '0', STR_PAD_LEFT);
+                                    })(),
                                     'nama' => $tr['nama'],
                                     'no_plat' => $tr['no_plat'],
                                     'jenis' => $tr['jenis'],
@@ -968,9 +1134,9 @@ if ($current_section === 'ulasan') {
         <div class="admin-card">
             <div class="card-header print-hide">
                 <h3><?= trans('admin_sec_report_monthly') ?></h3>
-                <button onclick="window.print()" class="px-4 py-2 text-sm font-medium rounded print-hide" style="background:#5a6c3e;color:#fff;border:none;cursor:pointer;display:inline-flex;align-items:center;">
+                <button onclick="printLaporan()" class="px-4 py-2 text-sm font-medium rounded print-hide" style="background:#5a6c3e;color:#fff;border:none;cursor:pointer;display:inline-flex;align-items:center;">
                     <svg style="width:16px;height:16px;margin-right:6px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    <?= trans('admin_btn_print') ?>
+                    <?= trans('admin_btn_print') ?> (Semua <?= $total_rows ?? 0 ?> data)
                 </button>
             </div>
 
@@ -986,7 +1152,7 @@ if ($current_section === 'ulasan') {
                 
                 <div class="flex items-center gap-2">
                     <label class="text-sm font-semibold text-gray-600 dark:text-gray-300">Cari:</label>
-                    <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Nama Pelanggan atau Plat..." class="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-olive-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-64">
+                    <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Pelanggan, Layanan, Kendaraan, Metode..." class="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-olive-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 w-72">
                 </div>
                 
                 <button type="submit" class="px-4 py-1.5 bg-olive-700 text-white text-sm font-semibold rounded-lg hover:bg-olive-800 transition-colors">Filter</button>
@@ -1009,15 +1175,60 @@ if ($current_section === 'ulasan') {
                 <?php else: ?>
                 <div style="overflow-x:auto;">
                 <table class="admin-table">
+                    <?php
+                    // Helper: buat URL sort dengan mempertahankan filter aktif
+                    function sortUrl(string $col, string $curKey, string $curOrder, string $nextOrder, string $month, string $search, int $page): string {
+                        $ord = ($col === $curKey) ? $nextOrder : 'asc';
+                        return 'index.php?page=admin_dashboard&section=laporan'
+                            . '&month=' . urlencode($month)
+                            . '&search=' . urlencode($search)
+                            . '&sort=' . $col
+                            . '&order=' . $ord
+                            . '&p=1';
+                    }
+                    // Helper: ikon sort (↑ ASC aktif, ↓ DESC aktif, ↕ tidak aktif)
+                    function sortIcon(string $col, string $curKey, string $curOrder): string {
+                        if ($col !== $curKey) {
+                            return '<svg style="display:inline;width:12px;height:12px;margin-left:3px;opacity:.4;" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 9l4-4 4 4M16 15l-4 4-4-4"/></svg>';
+                        }
+                        if ($curOrder === 'ASC') {
+                            return '<svg style="display:inline;width:12px;height:12px;margin-left:3px;color:#4b5320" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19V5M5 12l7-7 7 7"/></svg>';
+                        }
+                        return '<svg style="display:inline;width:12px;height:12px;margin-left:3px;color:#4b5320" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14M19 12l-7 7-7-7"/></svg>';
+                    }
+                    ?>
                     <thead><tr>
-                        <th>No</th>
-                        <th>Waktu Selesai</th>
-                        <th>Pelanggan</th>
-                        <th>Kendaraan</th>
-                        <th>Layanan</th>
-
-                        <th>Metode</th>
-                        <th>Total</th>
+                        <th style="width:40px;">No</th>
+                        <th>
+                            <a href="<?= sortUrl('waktu',    $sort_key, $sort_order, $next_order, $filter_month, $search, $page) ?>" style="display:inline-flex;align-items:center;color:inherit;text-decoration:none;white-space:nowrap;">
+                                Waktu Selesai<?= sortIcon('waktu', $sort_key, $sort_order) ?>
+                            </a>
+                        </th>
+                        <th>
+                            <a href="<?= sortUrl('pelanggan', $sort_key, $sort_order, $next_order, $filter_month, $search, $page) ?>" style="display:inline-flex;align-items:center;color:inherit;text-decoration:none;white-space:nowrap;">
+                                Pelanggan<?= sortIcon('pelanggan', $sort_key, $sort_order) ?>
+                            </a>
+                        </th>
+                        <th>
+                            <a href="<?= sortUrl('kendaraan', $sort_key, $sort_order, $next_order, $filter_month, $search, $page) ?>" style="display:inline-flex;align-items:center;color:inherit;text-decoration:none;white-space:nowrap;">
+                                Kendaraan<?= sortIcon('kendaraan', $sort_key, $sort_order) ?>
+                            </a>
+                        </th>
+                        <th>
+                            <a href="<?= sortUrl('layanan',   $sort_key, $sort_order, $next_order, $filter_month, $search, $page) ?>" style="display:inline-flex;align-items:center;color:inherit;text-decoration:none;white-space:nowrap;">
+                                Layanan<?= sortIcon('layanan', $sort_key, $sort_order) ?>
+                            </a>
+                        </th>
+                        <th>
+                            <a href="<?= sortUrl('metode',    $sort_key, $sort_order, $next_order, $filter_month, $search, $page) ?>" style="display:inline-flex;align-items:center;color:inherit;text-decoration:none;white-space:nowrap;">
+                                Metode<?= sortIcon('metode', $sort_key, $sort_order) ?>
+                            </a>
+                        </th>
+                        <th>
+                            <a href="<?= sortUrl('total',     $sort_key, $sort_order, $next_order, $filter_month, $search, $page) ?>" style="display:inline-flex;align-items:center;color:inherit;text-decoration:none;white-space:nowrap;">
+                                Total<?= sortIcon('total', $sort_key, $sort_order) ?>
+                            </a>
+                        </th>
                     </tr></thead>
                     <tbody>
                     <?php 
@@ -1025,7 +1236,7 @@ if ($current_section === 'ulasan') {
                     ?>
                     <tr>
                         <td><?= $offset + $i + 1 ?></td>
-                        <td><?= date('d M Y H:i', strtotime($lp['tanggal'])) ?></td>
+                        <td><?= date('d M Y H:i', strtotime($lp['waktu_selesai'])) ?></td>
                         <td><?= htmlspecialchars($lp['pelanggan']) ?></td>
                         <td><?= htmlspecialchars($lp['jenis']) ?> (<?= htmlspecialchars($lp['no_plat']) ?>)</td>
                         <td><?= htmlspecialchars($lp['nama_layanan']) ?></td>
@@ -1070,6 +1281,107 @@ if ($current_section === 'ulasan') {
 
                 <?php endif; ?>
             </div>
+
+            <?php if ($current_section === 'laporan' && !empty($laporan_all)): ?>
+            <script>
+            const _laporanAll = <?= json_encode(array_map(function($row) {
+                return [
+                    'no'         => 0, // will be set by index
+                    'tanggal'    => date('d M Y H:i', strtotime($row['waktu_selesai'])),
+                    'pelanggan'  => htmlspecialchars($row['pelanggan']),
+                    'kendaraan'  => htmlspecialchars($row['jenis']) . ' (' . htmlspecialchars($row['no_plat']) . ')',
+                    'layanan'    => htmlspecialchars($row['nama_layanan']),
+                    'metode'     => htmlspecialchars($row['metode'] ?: '-'),
+                    'total'      => number_format($row['total'] ?? 0, 0, ',', '.'),
+                    'total_raw'  => (int)($row['total'] ?? 0),
+                ];
+            }, $laporan_all), JSON_UNESCAPED_UNICODE) ?>;
+
+            const _grandTotal    = <?= (int)($grand_total ?? 0) ?>;
+            const _filterMonth   = '<?= date('F Y', strtotime($filter_month . '-01')) ?>';
+            const _totalRows     = <?= (int)($total_rows ?? 0) ?>;
+            const _searchKeyword = '<?= addslashes($search ?? '') ?>';
+
+            function printLaporan() {
+                const rows = _laporanAll.map((row, i) => `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${row.tanggal}</td>
+                        <td>${row.pelanggan}</td>
+                        <td>${row.kendaraan}</td>
+                        <td>${row.layanan}</td>
+                        <td>${row.metode}</td>
+                        <td style="text-align:right;">Rp ${row.total}</td>
+                    </tr>`).join('');
+
+                const grandTotalFormatted = _grandTotal.toLocaleString('id-ID');
+                const searchInfo = _searchKeyword ? `<p style="font-size:12px;color:#555;margin:4px 0;">Filter pencarian: <strong>${_searchKeyword}</strong></p>` : '';
+
+                const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Laporan Transaksi - ${_filterMonth}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 12px; color: #111; padding: 20px; }
+        h1 { font-size: 18px; font-weight: bold; text-align: center; margin-bottom: 4px; }
+        .subtitle { text-align: center; font-size: 12px; color: #555; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        thead tr { background-color: #4b5320; color: #fff; }
+        th { padding: 8px 10px; text-align: left; font-size: 11px; font-weight: bold; }
+        td { padding: 7px 10px; border-bottom: 1px solid #e5e7eb; font-size: 11px; }
+        tbody tr:nth-child(even) { background-color: #f9fafb; }
+        tfoot tr { font-weight: bold; background: #f3f4f6; }
+        tfoot td { padding: 8px 10px; border-top: 2px solid #4b5320; }
+        .total-label { text-align: right; }
+        .total-value { text-align: right; color: #4b5320; font-size: 13px; }
+        .footer { margin-top: 20px; font-size: 11px; color: #888; text-align: center; }
+        @media print {
+            body { padding: 10px; }
+            @page { margin: 1cm; size: A4 landscape; }
+        }
+    </style>
+</head>
+<body>
+    <h1>CrystalWash - Laporan Transaksi</h1>
+    <p class="subtitle">Periode: ${_filterMonth} &nbsp;|&nbsp; Total: ${_totalRows} transaksi${_searchKeyword ? ' (filter: ' + _searchKeyword + ')' : ''}</p>
+    <table>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Tanggal</th>
+                <th>Pelanggan</th>
+                <th>Kendaraan</th>
+                <th>Layanan</th>
+                <th>Metode</th>
+                <th style="text-align:right;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${rows}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="6" class="total-label">Total Pendapatan Bulan Ini:</td>
+                <td class="total-value">Rp ${grandTotalFormatted}</td>
+            </tr>
+        </tfoot>
+    </table>
+    <p class="footer">Dicetak pada: ${new Date().toLocaleDateString('id-ID', {weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'})}</p>
+    <script>
+        window.onload = function() { window.print(); window.onafterprint = function() { window.close(); }; };
+    <\/script>
+</body>
+</html>`;
+
+                const printWin = window.open('', '_blank', 'width=900,height=700');
+                printWin.document.write(html);
+                printWin.document.close();
+            }
+            </script>
+            <?php endif; ?>
+
         </div>
         
         <?php elseif ($current_section === 'layanan'): ?>

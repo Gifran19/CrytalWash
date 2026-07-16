@@ -70,14 +70,31 @@ if ($is_post || $is_confirm_qris) {
         }
     }
 
-    // Definisikan durasi estimasi berdasarkan layanan
+    // =========================================================
+    // Estimasi durasi berdasarkan nama layanan aktual di database
+    // Sesuai ketentuan:
+    //   Motor Standar (kecil) → 20 menit
+    //   Motor Besar           → 32 menit
+    //   Mobil Standar (kecil) → 45 menit
+    //   Mobil Besar           → 60 menit
+    // =========================================================
+    $nama_layanan_session = $order['layanan'] ?? '';
+    $tipe_kendaraan       = strtolower($order['tipe'] ?? 'mobil');
+    $is_motor             = (strpos($tipe_kendaraan, 'motor') !== false
+                          || strpos($tipe_kendaraan, 'motorcycle') !== false);
+
     $service_durations = [
-        'Quick Wash'      => 30,
-        'Full Wash'       => 60,
-        'Interior Detail' => 90,
-        'Engine Wash'     => 45,
+        // Motor
+        'Cuci Motor Standar' => 20,   // motor kecil
+        'Cuci Motor Besar'   => 32,   // motor besar
+        // Mobil
+        'Cuci Mobil Standar' => 45,   // mobil kecil
+        'Cuci Mobil Besar'   => 60,   // mobil besar
     ];
-    $estimasi = $service_durations[$order['layanan']] ?? 45;
+
+    // Fallback: gunakan rata-rata sesuai jenis kendaraan jika layanan tidak dikenali
+    $default_estimasi = $is_motor ? 26 : 52;
+    $estimasi = $service_durations[$nama_layanan_session] ?? $default_estimasi;
 
     // =========================================================
     // DATABASE TRANSACTION: Atomic insert semua record
@@ -107,11 +124,21 @@ if ($is_post || $is_confirm_qris) {
             'id_booking' => $id_booking,
         ]);
 
-        // 3. INSERT Antrian (nomor otomatis per hari)
-        $stmt = $conn->prepare("SELECT COALESCE(MAX(nomor_antrian), 0) + 1 as next_nomor FROM antrian a
+        // 3. INSERT Antrian (nomor otomatis per hari, TERPISAH per jenis kendaraan)
+        // Hitung nomor antrian hanya untuk jenis kendaraan yang sama (Motor atau Mobil)
+        $jenis_kendaraan_filter = $is_motor ? 'Motor' : 'Mobil';
+        $stmt = $conn->prepare("
+            SELECT COALESCE(MAX(a.nomor_antrian), 0) + 1 as next_nomor
+            FROM antrian a
             JOIN booking b ON a.id_booking = b.id_booking
-            WHERE b.tanggal = :tanggal");
-        $stmt->execute(['tanggal' => $order['tanggal'] ?? date('Y-m-d')]);
+            JOIN kendaraan k ON b.id_kendaraan = k.id_kendaraan
+            WHERE b.tanggal = :tanggal
+              AND k.jenis = :jenis
+        ");
+        $stmt->execute([
+            'tanggal' => $order['tanggal'] ?? date('Y-m-d'),
+            'jenis'   => $jenis_kendaraan_filter,
+        ]);
         $next_nomor = $stmt->fetch()['next_nomor'];
 
         $stmt = $conn->prepare("INSERT INTO antrian (nomor_antrian, status, id_booking)
@@ -120,6 +147,9 @@ if ($is_post || $is_confirm_qris) {
             'nomor'      => $next_nomor,
             'id_booking' => $id_booking,
         ]);
+
+        // Prefix antrian: M- untuk Motor, C- untuk Mobil
+        $antrian_prefix = $is_motor ? 'M' : 'C';
 
         // 4. INSERT Transaksi
         $stmt = $conn->prepare("INSERT INTO transaksi (total, id_booking)
@@ -140,12 +170,14 @@ if ($is_post || $is_confirm_qris) {
         $conn->commit();
 
         // Simpan data ke session untuk halaman berikutnya
-        $_SESSION['order']['id_booking']      = $id_booking;
-        $_SESSION['order']['nomor_antrian']   = $next_nomor;
-        $_SESSION['order']['payment_status']  = $payment_status;
-        $_SESSION['order']['payment_method']  = $method;
-        $_SESSION['order']['transaction_id']  = $transaction_prefix . '-' . strtoupper(uniqid());
-        $_SESSION['order']['estimasi_waktu']  = $estimasi;
+        $_SESSION['order']['id_booking']        = $id_booking;
+        $_SESSION['order']['nomor_antrian']     = $next_nomor;
+        $_SESSION['order']['antrian_prefix']    = $antrian_prefix;         // 'M' atau 'C'
+        $_SESSION['order']['antrian_display']   = $antrian_prefix . '-' . str_pad($next_nomor, 2, '0', STR_PAD_LEFT); // e.g. M-01
+        $_SESSION['order']['payment_status']    = $payment_status;
+        $_SESSION['order']['payment_method']    = $method;
+        $_SESSION['order']['transaction_id']    = $transaction_prefix . '-' . strtoupper(uniqid());
+        $_SESSION['order']['estimasi_waktu']    = $estimasi;
 
         // Redirect ke halaman selanjutnya
         header("Location: index.php?page=finish");

@@ -555,6 +555,40 @@ h1, h2, h3, h4, h5, h6 {
   --tw-backdrop-sepia:  ;
 }
 
+.container {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1536px;
+  }
+}
+
 .btn-primary {
   display: inline-block;
   border-radius: 9999px;
@@ -625,10 +659,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .collapse {
   visibility: collapse;
-}
-
-.static {
-  position: static;
 }
 
 .fixed {
@@ -816,10 +846,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .ml-1 {
   margin-left: 0.25rem;
-}
-
-.ml-2 {
-  margin-left: 0.5rem;
 }
 
 .ml-4 {
@@ -1077,6 +1103,10 @@ h1, h2, h3, h4, h5, h6 {
   width: 1.75rem;
 }
 
+.w-72 {
+  width: 18rem;
+}
+
 .w-8 {
   width: 2rem;
 }
@@ -1127,6 +1157,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .flex-1 {
   flex: 1 1 0%;
+}
+
+.flex-shrink {
+  flex-shrink: 1;
 }
 
 .flex-shrink-0 {
@@ -1223,8 +1257,16 @@ h1, h2, h3, h4, h5, h6 {
   gap: 0px;
 }
 
+.gap-0\.5 {
+  gap: 0.125rem;
+}
+
 .gap-1 {
   gap: 0.25rem;
+}
+
+.gap-1\.5 {
+  gap: 0.375rem;
 }
 
 .gap-2 {
@@ -1374,6 +1416,11 @@ h1, h2, h3, h4, h5, h6 {
   border-width: 4px;
 }
 
+.border-y {
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+}
+
 .border-b {
   border-bottom-width: 1px;
 }
@@ -1430,11 +1477,6 @@ h1, h2, h3, h4, h5, h6 {
 .border-olive-100 {
   --tw-border-opacity: 1;
   border-color: rgb(240 244 225 / var(--tw-border-opacity));
-}
-
-.border-olive-200 {
-  --tw-border-opacity: 1;
-  border-color: rgb(225 235 208 / var(--tw-border-opacity));
 }
 
 .border-olive-700 {
@@ -1563,11 +1605,6 @@ h1, h2, h3, h4, h5, h6 {
 .bg-rose-50 {
   --tw-bg-opacity: 1;
   background-color: rgb(255 241 242 / var(--tw-bg-opacity));
-}
-
-.bg-slate-900 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(15 23 42 / var(--tw-bg-opacity));
 }
 
 .bg-transparent {
@@ -1714,8 +1751,20 @@ h1, h2, h3, h4, h5, h6 {
      object-fit: cover;
 }
 
+.p-0 {
+  padding: 0px;
+}
+
+.p-0\.5 {
+  padding: 0.125rem;
+}
+
 .p-1 {
   padding: 0.25rem;
+}
+
+.p-1\.5 {
+  padding: 0.375rem;
 }
 
 .p-10 {
@@ -1814,11 +1863,6 @@ h1, h2, h3, h4, h5, h6 {
   padding-bottom: 0.375rem;
 }
 
-.py-10 {
-  padding-top: 2.5rem;
-  padding-bottom: 2.5rem;
-}
-
 .py-12 {
   padding-top: 3rem;
   padding-bottom: 3rem;
@@ -1911,16 +1955,16 @@ h1, h2, h3, h4, h5, h6 {
   padding-left: 3rem;
 }
 
+.pl-2 {
+  padding-left: 0.5rem;
+}
+
 .pl-3 {
   padding-left: 0.75rem;
 }
 
 .pl-4 {
   padding-left: 1rem;
-}
-
-.pl-6 {
-  padding-left: 1.5rem;
 }
 
 .pr-4 {
@@ -1964,23 +2008,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .text-2xl {
-  font-size: 1.5rem;
-  line-height: 2rem;
+  font-size: 1.625rem;
+  line-height: 1.4;
 }
 
 .text-3xl {
-  font-size: 1.875rem;
-  line-height: 2.25rem;
+  font-size: 2rem;
+  line-height: 1.3;
 }
 
 .text-4xl {
-  font-size: 2.25rem;
-  line-height: 2.5rem;
+  font-size: 2.5rem;
+  line-height: 1.2;
 }
 
 .text-5xl {
-  font-size: 3rem;
-  line-height: 1;
+  font-size: 3.25rem;
+  line-height: 1.1;
 }
 
 .text-\[10px\] {
@@ -1992,28 +2036,28 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .text-base {
-  font-size: 1rem;
-  line-height: 1.5rem;
+  font-size: 1.125rem;
+  line-height: 1.75;
 }
 
 .text-lg {
-  font-size: 1.125rem;
-  line-height: 1.75rem;
+  font-size: 1.25rem;
+  line-height: 1.75;
 }
 
 .text-sm {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 .text-xl {
-  font-size: 1.25rem;
-  line-height: 1.75rem;
+  font-size: 1.375rem;
+  line-height: 1.75;
 }
 
 .text-xs {
-  font-size: 0.75rem;
-  line-height: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
 .font-black {
@@ -2068,10 +2112,6 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.25;
 }
 
-.tracking-\[0\.2em\] {
-  letter-spacing: 0.2em;
-}
-
 .tracking-tight {
   letter-spacing: -0.025em;
 }
@@ -2096,6 +2136,11 @@ h1, h2, h3, h4, h5, h6 {
 .text-amber-400 {
   --tw-text-opacity: 1;
   color: rgb(251 191 36 / var(--tw-text-opacity));
+}
+
+.text-blue-500 {
+  --tw-text-opacity: 1;
+  color: rgb(59 130 246 / var(--tw-text-opacity));
 }
 
 .text-blue-600 {
@@ -2153,6 +2198,11 @@ h1, h2, h3, h4, h5, h6 {
   color: rgb(17 24 39 / var(--tw-text-opacity));
 }
 
+.text-green-500 {
+  --tw-text-opacity: 1;
+  color: rgb(34 197 94 / var(--tw-text-opacity));
+}
+
 .text-green-600 {
   --tw-text-opacity: 1;
   color: rgb(22 163 74 / var(--tw-text-opacity));
@@ -2206,6 +2256,10 @@ h1, h2, h3, h4, h5, h6 {
 .text-yellow-700 {
   --tw-text-opacity: 1;
   color: rgb(161 98 7 / var(--tw-text-opacity));
+}
+
+.underline {
+  text-decoration-line: underline;
 }
 
 .opacity-40 {
@@ -2388,6 +2442,77 @@ h1, h2, h3, h4, h5, h6 {
   color-scheme: light;
 }
 
+/* =====================================================
+   AKSESIBILITAS: Penyesuaian Font untuk Usia 25-60 Tahun
+   Raw CSS (di luar @layer) - selalu disertakan di output
+   ===================================================== */
+
+/* Base font-size naik dari 16px ke 17px — semua rem ikut naik proporsional */
+
+html {
+  font-size: 17px;
+}
+
+/* Body: line-height dan letter-spacing lebih nyaman dibaca */
+
+body {
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+/* Heading: line-height lebih rapat agar terasa premium */
+
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.3;
+}
+
+/* Form elements: ukuran font cukup besar dan mudah dibaca/disentuh */
+
+input,
+select,
+textarea {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Tombol: ukuran font dan tinggi minimum agar mudah diklik */
+
+button {
+  font-size: 1rem;
+  min-height: 44px;
+}
+
+/* Label form lebih besar */
+
+label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+/* Placeholder teks lebih mudah dibaca */
+
+::-moz-placeholder {
+  opacity: 0.65;
+}
+
+::placeholder {
+  opacity: 0.65;
+}
+
+/* text-xs tetap terbaca: naik dari 12px ke 14px */
+
+.text-xs {
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+
+/* text-sm tetap terbaca: naik dari 14px ke 16px */
+
+.text-sm {
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+}
+
 .placeholder\:normal-case::-moz-placeholder {
   text-transform: none;
 }
@@ -2520,6 +2645,11 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgb(255 255 255 / 0.3);
 }
 
+.hover\:text-blue-800:hover {
+  --tw-text-opacity: 1;
+  color: rgb(30 64 175 / var(--tw-text-opacity));
+}
+
 .hover\:text-gray-600:hover {
   --tw-text-opacity: 1;
   color: rgb(75 85 99 / var(--tw-text-opacity));
@@ -2538,6 +2668,11 @@ h1, h2, h3, h4, h5, h6 {
 .hover\:text-olive-700:hover {
   --tw-text-opacity: 1;
   color: rgb(75 83 32 / var(--tw-text-opacity));
+}
+
+.hover\:text-red-600:hover {
+  --tw-text-opacity: 1;
+  color: rgb(220 38 38 / var(--tw-text-opacity));
 }
 
 .hover\:text-red-700:hover {
@@ -2779,6 +2914,10 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgb(75 83 32 / var(--tw-border-opacity));
 }
 
+:is(.dark .dark\:border-olive-900\/30) {
+  border-color: rgb(53 60 29 / 0.3);
+}
+
 :is(.dark .dark\:border-red-800) {
   --tw-border-opacity: 1;
   border-color: rgb(153 27 27 / var(--tw-border-opacity));
@@ -2850,6 +2989,10 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgb(53 60 29 / 0.3);
 }
 
+:is(.dark .dark\:bg-olive-900\/40) {
+  background-color: rgb(53 60 29 / 0.4);
+}
+
 :is(.dark .dark\:bg-red-900\/30) {
   background-color: rgb(127 29 29 / 0.3);
 }
@@ -2866,6 +3009,10 @@ h1, h2, h3, h4, h5, h6 {
 :is(.dark .dark\:bg-slate-800) {
   --tw-bg-opacity: 1;
   background-color: rgb(30 41 59 / var(--tw-bg-opacity));
+}
+
+:is(.dark .dark\:bg-slate-800\/40) {
+  background-color: rgb(30 41 59 / 0.4);
 }
 
 :is(.dark .dark\:bg-slate-900) {
@@ -2932,6 +3079,11 @@ h1, h2, h3, h4, h5, h6 {
   color: rgb(107 114 128 / var(--tw-text-opacity));
 }
 
+:is(.dark .dark\:text-gray-600) {
+  --tw-text-opacity: 1;
+  color: rgb(75 85 99 / var(--tw-text-opacity));
+}
+
 :is(.dark .dark\:text-gray-700) {
   --tw-text-opacity: 1;
   color: rgb(55 65 81 / var(--tw-text-opacity));
@@ -2945,6 +3097,11 @@ h1, h2, h3, h4, h5, h6 {
 :is(.dark .dark\:text-olive-200) {
   --tw-text-opacity: 1;
   color: rgb(225 235 208 / var(--tw-text-opacity));
+}
+
+:is(.dark .dark\:text-olive-300) {
+  --tw-text-opacity: 1;
+  color: rgb(204 220 174 / var(--tw-text-opacity));
 }
 
 :is(.dark .dark\:text-olive-400) {
@@ -2987,6 +3144,16 @@ h1, h2, h3, h4, h5, h6 {
   color-scheme: dark;
 }
 
+:is(.dark .dark\:placeholder\:text-gray-500)::-moz-placeholder {
+  --tw-text-opacity: 1;
+  color: rgb(107 114 128 / var(--tw-text-opacity));
+}
+
+:is(.dark .dark\:placeholder\:text-gray-500)::placeholder {
+  --tw-text-opacity: 1;
+  color: rgb(107 114 128 / var(--tw-text-opacity));
+}
+
 :is(.dark .dark\:focus-within\:border-olive-500:focus-within) {
   --tw-border-opacity: 1;
   border-color: rgb(131 150 101 / var(--tw-border-opacity));
@@ -3011,6 +3178,10 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgb(31 41 55 / var(--tw-bg-opacity));
 }
 
+:is(.dark .dark\:hover\:bg-olive-900\/60:hover) {
+  background-color: rgb(53 60 29 / 0.6);
+}
+
 :is(.dark .dark\:hover\:text-gray-200:hover) {
   --tw-text-opacity: 1;
   color: rgb(229 231 235 / var(--tw-text-opacity));
@@ -3019,6 +3190,11 @@ h1, h2, h3, h4, h5, h6 {
 :is(.dark .dark\:hover\:text-olive-400:hover) {
   --tw-text-opacity: 1;
   color: rgb(163 177 138 / var(--tw-text-opacity));
+}
+
+:is(.dark .dark\:hover\:text-red-400:hover) {
+  --tw-text-opacity: 1;
+  color: rgb(248 113 113 / var(--tw-text-opacity));
 }
 
 :is(.dark .dark\:focus\:border-olive-500:focus) {
@@ -3097,6 +3273,10 @@ h1, h2, h3, h4, h5, h6 {
     grid-column: span 2 / span 2;
   }
 
+  .sm\:ml-2 {
+    margin-left: 0.5rem;
+  }
+
   .sm\:block {
     display: block;
   }
@@ -3105,12 +3285,20 @@ h1, h2, h3, h4, h5, h6 {
     display: inline-block;
   }
 
+  .sm\:flex {
+    display: flex;
+  }
+
   .sm\:hidden {
     display: none;
   }
 
   .sm\:w-1\/2 {
     width: 50%;
+  }
+
+  .sm\:w-auto {
+    width: auto;
   }
 
   .sm\:grid-cols-2 {
@@ -3125,6 +3313,22 @@ h1, h2, h3, h4, h5, h6 {
     align-items: stretch;
   }
 
+  .sm\:justify-end {
+    justify-content: flex-end;
+  }
+
+  .sm\:gap-3 {
+    gap: 0.75rem;
+  }
+
+  .sm\:gap-4 {
+    gap: 1rem;
+  }
+
+  .sm\:gap-6 {
+    gap: 1.5rem;
+  }
+
   .sm\:p-8 {
     padding: 2rem;
   }
@@ -3134,14 +3338,18 @@ h1, h2, h3, h4, h5, h6 {
     padding-right: 1.5rem;
   }
 
+  .sm\:pl-6 {
+    padding-left: 1.5rem;
+  }
+
   .sm\:text-3xl {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
+    font-size: 2rem;
+    line-height: 1.3;
   }
 
   .sm\:text-5xl {
-    font-size: 3rem;
-    line-height: 1;
+    font-size: 3.25rem;
+    line-height: 1.1;
   }
 }
 
@@ -3161,6 +3369,10 @@ h1, h2, h3, h4, h5, h6 {
 
   .md\:mb-0 {
     margin-bottom: 0px;
+  }
+
+  .md\:mb-8 {
+    margin-bottom: 2rem;
   }
 
   .md\:ml-8 {
@@ -3243,14 +3455,6 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: space-between;
   }
 
-  .md\:gap-16 {
-    gap: 4rem;
-  }
-
-  .md\:gap-4 {
-    gap: 1rem;
-  }
-
   .md\:p-10 {
     padding: 2.5rem;
   }
@@ -3267,28 +3471,37 @@ h1, h2, h3, h4, h5, h6 {
     padding: 2rem;
   }
 
+  .md\:px-0 {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+
   .md\:px-12 {
     padding-left: 3rem;
     padding-right: 3rem;
   }
 
+  .md\:pb-0 {
+    padding-bottom: 0px;
+  }
+
   .md\:text-3xl {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
+    font-size: 2rem;
+    line-height: 1.3;
   }
 
   .md\:text-4xl {
-    font-size: 2.25rem;
-    line-height: 2.5rem;
+    font-size: 2.5rem;
+    line-height: 1.2;
   }
 
   .md\:text-5xl {
-    font-size: 3rem;
-    line-height: 1;
+    font-size: 3.25rem;
+    line-height: 1.1;
   }
 
   .md\:text-7xl {
-    font-size: 4.5rem;
+    font-size: 4.75rem;
     line-height: 1;
   }
 }
@@ -3313,8 +3526,8 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .lg\:text-4xl {
-    font-size: 2.25rem;
-    line-height: 2.5rem;
+    font-size: 2.5rem;
+    line-height: 1.2;
   }
 }
 
@@ -3323,3 +3536,4 @@ h1, h2, h3, h4, h5, h6 {
     display: none;
   }
 }
+

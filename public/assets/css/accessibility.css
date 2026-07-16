@@ -1,0 +1,84 @@
+/* =====================================================
+   CrystalWash - Aksesibilitas Font
+   Penyesuaian untuk keterbacaan pengguna usia 25-60 tahun
+   File ini terpisah dari Tailwind dan tidak akan ditimpa saat compile.
+   ===================================================== */
+
+/* Base font-size naik dari 16px ke 17px
+   Semua rem (teks, padding, spacing) ikut naik proporsional ~6% */
+html {
+  font-size: 17px;
+}
+
+/* Body: line-height dan letter-spacing lebih nyaman dibaca */
+body {
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+/* Heading: line-height lebih rapat, tetap bersih */
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.3;
+}
+
+/* Paragraf: jarak antar baris lebih lega */
+p {
+  line-height: 1.8;
+}
+
+/* Form elements: ukuran font cukup besar agar mudah dibaca & disentuh */
+input,
+select,
+textarea {
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+}
+
+/* Tombol: ukuran font dan tinggi minimum agar mudah diklik */
+button {
+  font-size: 1rem;
+  min-height: 44px;
+}
+
+/* Label form lebih besar */
+label {
+  font-size: 0.9375rem; /* ~15.9px */
+  font-weight: 500;
+}
+
+/* Placeholder teks lebih mudah terlihat */
+::placeholder {
+  opacity: 0.65;
+}
+
+/* text-xs: naik dari ~12px ke ~15px (17px * 0.875rem) */
+.text-xs {
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+
+/* text-sm: naik dari ~14px ke ~17px */
+.text-sm {
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+}
+
+/* text-base: naik dari 16px ke ~19px */
+.text-base {
+  font-size: 1.125rem !important;
+  line-height: 1.75 !important;
+}
+
+/* Teks pada nav link lebih mudah dibaca */
+nav a {
+  font-size: 1rem;
+}
+
+/* Tabel: baris lebih mudah dibaca */
+table {
+  font-size: 1rem;
+}
+
+th, td {
+  line-height: 1.6;
+}

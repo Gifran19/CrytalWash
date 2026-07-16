@@ -203,4 +203,50 @@ return [
     'admin_star' => 'Star(s)',
     'admin_filter_search' => 'Search Keyword',
     'admin_placeholder_search_review' => 'Name or comments...',
+
+    // Home - Highlights (Baru)
+    'hl_clean' => 'Clean & Shine Guarantee',
+    'hl_fast' => 'Fast & Precise Process',
+    'hl_queue' => 'Live Digital Queue',
+    'hl_payment' => 'QRIS & Cash Payment',
+
+    // Home - Vehicle Headers & Examples (Baru)
+    'srv_motor_header' => 'Motorcycle Services',
+    'srv_mobil_header' => 'Car Services',
+    'srv_motor_std_desc' => 'Washing service for compact two-wheeled vehicles with small to medium engine capacity. The process is faster and more practical, including body, wheel cleaning, and tire shine.',
+    'srv_motor_big_desc' => 'Special service for maxi scooters, sport bikes, or large motorcycles. Requires extra precision to reach complex body parts and open engine areas.',
+    'srv_mobil_std_desc' => 'Exterior and interior washing care for compact to medium four-wheeled vehicles (City Cars, Hatchbacks, Compact SUVs, and Low MPVs). Perfect for efficient daily cleaning.',
+    'srv_mobil_big_desc' => 'Extra washing care for large, long, and tall vehicles (Large SUVs, Premium MPVs, Double Cabins). Requires more shampoo, washing time, and larger interior cabin vacuuming.',
+    'srv_example_vehicle' => 'VEHICLE EXAMPLES:',
+
+    // Booking Step 2 (Baru)
+    'bk_step2_title' => 'Book Your Wash',
+    'bk_step2_subtitle' => 'Complete your vehicle details and select the best care service.',
+    'bk_step2_choose_vehicle' => 'Choose Vehicle Type',
+    'bk_step2_car' => 'Car',
+    'bk_step2_motor' => 'Motorcycle',
+    'bk_step2_choose_service' => 'Select Service / Category',
+    'bk_step2_total_price' => 'Total Service Cost',
+    'bk_step2_plate' => 'Plate Number',
+    'bk_step2_plate_placeholder' => 'Example: B 1234 ABC',
+    'bk_step2_plate_title' => 'Correct format example: B 1234 ABC',
+    'bk_step2_datetime' => 'Date & Time',
+
+    // Finish Page & Review (Baru)
+    'fin_detail_title' => 'Booking Detail',
+    'fin_btn_invoice' => 'Print Invoice',
+    'fin_label_name' => 'Name',
+    'fin_label_vehicle' => 'Vehicle',
+    'fin_label_date' => 'Date',
+    'fin_label_service' => 'Service',
+    'fin_label_email' => 'Email',
+    'fin_label_total' => 'Total Price',
+    'fin_est_time' => 'Estimated Time +- %d Minutes',
+    'fin_est_ready' => 'Estimated ready to pick up at:',
+    'fin_rev_title' => 'How Was Your Booking Experience?',
+    'fin_rev_subtitle' => 'Help us to continuously improve our service quality.',
+    'fin_rev_placeholder' => 'Write your feedback or suggestions here... (Optional)',
+    'fin_rev_submit' => 'Submit Review & Return',
+    'fin_rev_skip' => 'Skip & Return to Home',
+    'fin_err_id' => 'Booking ID not found.',
 ];
