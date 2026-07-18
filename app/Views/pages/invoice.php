@@ -2,33 +2,49 @@
 $hide_navbar = true; // Sembunyikan navbar global
 require_once BASE_PATH . '/app/Config/database.php';
 
-// Ambil data dari session atau URL (idealnya dari DB berdasarkan ID)
+// Ambil data dari session atau URL (dari DB berdasarkan ID)
 $order = $_SESSION['order'] ?? [];
 $id_booking = $_GET['id'] ?? ($order['id_booking'] ?? 'INV-' . strtoupper(uniqid()));
 $date = date('d.m.Y');
 
 // Coba ambil dari database jika id_booking valid
 $booking_data = [];
-if (!empty($order['id_booking'])) {
+$query_id = $_GET['id'] ?? ($order['id_booking'] ?? null);
+
+if ($query_id && is_numeric($query_id)) {
     $stmt = $conn->prepare("SELECT 
-            b.*, l.nama_layanan, l.harga, k.no_plat, k.jenis
+            b.*, l.nama_layanan, l.harga, k.no_plat, k.jenis,
+            p.nama, p.email, p.no_hp,
+            pay.metode AS db_payment_method, pay.status AS db_payment_status
         FROM booking b
         JOIN layanan l ON b.id_layanan = l.id_layanan
         JOIN kendaraan k ON b.id_kendaraan = k.id_kendaraan
+        JOIN pelanggan p ON b.id_pelanggan = p.id_pelanggan
+        LEFT JOIN pembayaran pay ON b.id_booking = pay.id_booking
         WHERE b.id_booking = :id_booking");
-    $stmt->execute(['id_booking' => $order['id_booking']]);
+    $stmt->execute(['id_booking' => (int)$query_id]);
     $booking_data = $stmt->fetch();
 }
 
-$name = $order['nama'] ?? 'Guest';
-$email = $order['email'] ?? '-';
-$whatsapp = $order['whatsapp'] ?? '-';
+$name = $booking_data['nama'] ?? ($order['nama'] ?? 'Guest');
+$email = $booking_data['email'] ?? ($order['email'] ?? '-');
+$whatsapp = $booking_data['no_hp'] ?? ($order['whatsapp'] ?? '-');
 $service = $booking_data['nama_layanan'] ?? ($order['layanan'] ?? 'Quick Wash');
 $service_date = $booking_data['tanggal'] ?? date('Y-m-d');
 $duration = $booking_data['estimasi_waktu'] ?? 30;
-$payment_method = $order['payment_method'] ?? 'COD';
+$payment_method = $booking_data['db_payment_method'] ?? ($order['payment_method'] ?? 'COD');
 $price = $booking_data['harga'] ?? ($order['total_price'] ?? 0);
 $total = $price;
+
+// Tentukan apakah pembayaran sudah lunas
+$is_paid = false;
+if ((isset($booking_data['db_payment_status']) && strtolower($booking_data['db_payment_status']) === 'paid') ||
+    (isset($order['payment_status']) && strtolower($order['payment_status']) === 'paid')) {
+    $is_paid = true;
+} elseif (strcasecmp($payment_method, 'QRIS') === 0 || strcasecmp($payment_method, 'Ewallet') === 0 || strcasecmp($payment_method, 'Credit') === 0) {
+    $is_paid = true;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -138,7 +154,11 @@ $total = $price;
                     </div>
                     <div class="bg-gray-50 rounded-xl px-4 py-3 flex justify-between items-center">
                         <span class="text-gray-500 text-xs font-medium">Status Pembayaran</span>
-                        <span class="font-bold text-green-600 text-sm px-2 py-1 bg-green-100 rounded text-[10px] uppercase">Lunas</span>
+                        <?php if ($is_paid): ?>
+                            <span class="font-bold text-green-600 text-sm px-2 py-1 bg-green-100 rounded text-[10px] uppercase">Lunas</span>
+                        <?php else: ?>
+                            <span class="font-bold text-red-600 text-sm px-2 py-1 bg-red-100 rounded text-[10px] uppercase">Belum Lunas</span>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
