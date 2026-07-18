@@ -1,4 +1,7 @@
 <?php
+// Set timezone globally
+date_default_timezone_set('Asia/Jakarta');
+
 // Front Controller
 session_set_cookie_params([
     'lifetime' => 0,
