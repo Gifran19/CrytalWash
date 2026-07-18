@@ -8,7 +8,13 @@ $host = "aws-1-ap-southeast-1.pooler.supabase.com";
 $port = "6543";
 $db   = "postgres";
 $user = "postgres.umzvgjgirhlbveelvdny";
-$pass = "Wonosobo19!";
+$pass = "Wonosobo19!"; 
+
+/*$host = "aws-0-ap-southeast-1.pooler.supabase.com";
+$port = "6543";
+$db   = "postgres";
+$user = "postgres.snkgfxcvujxsqqywzmya";
+$pass = "#CrystalWash01"; */
 
 $dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require";
 

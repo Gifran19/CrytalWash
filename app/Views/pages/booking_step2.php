@@ -121,13 +121,22 @@ if ($error === 'duplicate_plat'): ?>
     <!-- Layanan Dropdown -->
     <div class="group">
         <label class="text-xs uppercase font-semibold text-gray-600 dark:text-gray-400 tracking-wider mb-2 block"><?= trans('bk_step2_choose_service') ?></label>
-        <div class="relative">
-            <select name="layanan" id="select_layanan" onchange="updatePrice()" required
-                class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl py-4 px-4 text-gray-800 dark:text-gray-100 font-medium focus:ring-2 focus:ring-olive-400 focus:border-olive-700 dark:focus:ring-olive-500 focus:outline-none transition-all duration-300 shadow-sm appearance-none cursor-pointer">
-                <!-- Diisi via JavaScript -->
-            </select>
-            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        <style>
+            #layanan_list::-webkit-scrollbar { width: 8px; }
+            #layanan_list::-webkit-scrollbar-track { background: #f3f4f6; border-radius: 0 12px 12px 0; }
+            #layanan_list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 8px; }
+            #layanan_list::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+        </style>
+        <div class="relative" id="layanan_dropdown_container">
+            <input type="hidden" name="layanan" id="select_layanan" required>
+            <button type="button" id="layanan_button" class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl py-4 px-4 text-left text-gray-800 dark:text-gray-100 font-medium focus:ring-2 focus:ring-olive-400 focus:border-olive-700 dark:focus:ring-olive-500 focus:outline-none transition-all duration-300 shadow-sm flex items-center justify-between">
+                <span id="layanan_text">Pilih Layanan...</span>
+                <svg class="h-5 w-5 text-gray-400 transition-transform duration-300" id="layanan_arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="layanan_options" class="absolute z-50 left-0 top-full mt-2 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl hidden opacity-0 transition-opacity duration-200 origin-top overflow-hidden">
+                <ul id="layanan_list" class="py-2 text-sm" style="max-height: 380px; overflow-y: scroll;">
+                    <!-- Diisi via JavaScript -->
+                </ul>
             </div>
         </div>
     </div>
@@ -261,31 +270,82 @@ const antrianData = {
 };
 
 function updateDropdown(tipe) {
-    const select = document.getElementById('select_layanan');
-    select.innerHTML = '';
+    const listContainer = document.getElementById('layanan_list');
+    listContainer.innerHTML = '';
     
     const list = (tipe === 'Mobil') ? servicesMobil : servicesMotor;
     
-    list.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s.nama_layanan;
-        opt.setAttribute('data-harga', s.harga);
-        opt.textContent = s.nama_layanan;
-        select.appendChild(opt);
+    // Urutkan berdasarkan abjad
+    const sortedList = [...list].sort((a, b) => a.nama_layanan.localeCompare(b.nama_layanan));
+    
+    sortedList.forEach(s => {
+        const li = document.createElement('li');
+        li.className = 'px-4 py-3 hover:bg-olive-50 dark:hover:bg-gray-700 cursor-pointer text-gray-800 dark:text-gray-200 transition-colors border-b border-gray-50 dark:border-gray-700/50 last:border-0';
+        li.textContent = s.nama_layanan;
+        li.onclick = () => selectOption(s.nama_layanan, s.harga, s.nama_layanan);
+        listContainer.appendChild(li);
     });
     
     // Tambahkan opsi 'Model Lainnya' di paling bawah
-    const optLainnya = document.createElement('option');
+    const liLainnya = document.createElement('li');
+    liLainnya.className = 'px-4 py-3 hover:bg-olive-50 dark:hover:bg-gray-700 cursor-pointer text-gray-800 dark:text-gray-200 transition-colors font-semibold text-olive-700 dark:text-olive-400';
     const hargaLainnya = (tipe === 'Mobil') ? 90000 : 35000;
-    optLainnya.value = (tipe === 'Mobil') ? 'Lainnya (Mobil)' : 'Lainnya (Motor)';
-    optLainnya.setAttribute('data-harga', hargaLainnya);
-    optLainnya.textContent = 'Model Lainnya / Cek di Lokasi';
-    select.appendChild(optLainnya);
+    const valLainnya = (tipe === 'Mobil') ? 'Lainnya Mobil' : 'Lainnya Motor';
+    liLainnya.textContent = 'Model Lainnya / Cek di Lokasi';
+    liLainnya.onclick = () => selectOption(valLainnya, hargaLainnya, 'Model Lainnya / Cek di Lokasi');
+    listContainer.appendChild(liLainnya);
     
     // Update antrian badge & estimasi sesuai jenis kendaraan
     updateAntrianDisplay(tipe);
-    updatePrice();
+    
+    // Auto select pertama
+    if (list.length > 0) {
+        selectOption(list[0].nama_layanan, list[0].harga, list[0].nama_layanan);
+    }
 }
+
+function selectOption(value, harga, displayText) {
+    document.getElementById('select_layanan').value = value;
+    document.getElementById('layanan_text').textContent = displayText;
+    
+    document.getElementById('display_harga').textContent = 'Rp ' + parseInt(harga).toLocaleString('id-ID');
+    document.getElementById('display_layanan_name').textContent = displayText.split(' - ')[0];
+    
+    closeDropdown();
+}
+
+// Custom Dropdown Logic
+const btn = document.getElementById('layanan_button');
+const menu = document.getElementById('layanan_options');
+const arrow = document.getElementById('layanan_arrow');
+const container = document.getElementById('layanan_dropdown_container');
+
+function toggleDropdown() {
+    if (menu.classList.contains('hidden')) {
+        menu.classList.remove('hidden');
+        setTimeout(() => menu.classList.remove('opacity-0'), 10);
+        arrow.classList.add('rotate-180');
+    } else {
+        closeDropdown();
+    }
+}
+
+function closeDropdown() {
+    menu.classList.add('opacity-0');
+    arrow.classList.remove('rotate-180');
+    setTimeout(() => menu.classList.add('hidden'), 200);
+}
+
+btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    toggleDropdown();
+});
+
+document.addEventListener('click', (e) => {
+    if (!container.contains(e.target)) {
+        closeDropdown();
+    }
+});
 
 function updateAntrianDisplay(tipe) {
     const badgeMobil  = document.getElementById('antrian-mobil-badge');
@@ -309,20 +369,11 @@ function updateAntrianDisplay(tipe) {
     }
 }
 
-function updatePrice() {
-    const select = document.getElementById('select_layanan');
-    const selectedOpt = select.options[select.selectedIndex];
-    if (selectedOpt) {
-        const harga = selectedOpt.getAttribute('data-harga');
-        const nama = selectedOpt.value;
-        
-        document.getElementById('display_harga').textContent = 'Rp ' + parseInt(harga).toLocaleString('id-ID');
-        document.getElementById('display_layanan_name').textContent = selectedOpt.textContent.split(' - ')[0];
-    }
-}
+// updatePrice removed, logic handled in selectOption
 
 // Inisialisasi awal saat halaman dimuat
 document.addEventListener('DOMContentLoaded', () => {
     updateDropdown('Mobil');
 });
+
 </script>
