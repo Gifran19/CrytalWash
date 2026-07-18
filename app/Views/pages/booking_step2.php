@@ -85,6 +85,7 @@ if ($error === 'duplicate_plat'): ?>
 </div>
 
 <form action="index.php?action=auth_booking" method="POST" class="space-y-6">
+    <?php csrf_field(); ?>
     <input type="hidden" name="next_step" value="3">
     
     <!-- Vehicle Type: Mobil vs Motor -->

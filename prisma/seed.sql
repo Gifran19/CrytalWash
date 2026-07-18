@@ -25,7 +25,7 @@ ON CONFLICT (username) DO NOTHING;
 -- Memastikan kolom jenis_kendaraan tersedia di tabel layanan (mencegah error 42703 di Supabase)
 ALTER TABLE layanan ADD COLUMN IF NOT EXISTS jenis_kendaraan VARCHAR(20) DEFAULT 'Car';
 
--- Hapus data layanan yang bertabrakan sebelum disisipkan ulang untuk mencegah duplikasi
+-- Hapus data layanan lama sebelum disisipkan ulang untuk mencegah duplikasi
 DELETE FROM layanan WHERE nama_layanan IN (
     'Cuci Mobil Standar', 'Cuci Mobil Besar', 'Cuci Motor', 'Cuci Motor Besar', 'Lainnya (Mobil)', 'Lainnya (Motor)'
 );

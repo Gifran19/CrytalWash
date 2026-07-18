@@ -9,6 +9,7 @@ require_once BASE_PATH . '/app/Helpers/functions.php';
  */
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    verify_csrf();
     $id_booking = $_SESSION['order']['id_booking'] ?? null;
     $rating     = intval($_POST['rating'] ?? 0);
     $komentar   = cleanInput($_POST['komentar'] ?? '');
@@ -40,10 +41,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             $conn->commit();
         } catch (PDOException $e) {
-            $conn->rollBack();
+            if ($conn->inTransaction()) {
+                $conn->rollBack();
+            }
             // Jika sudah ada feedback (duplicate key), abaikan error dan lanjut
             if (strpos($e->getMessage(), 'unique') === false) {
-                die("Gagal menyimpan ulasan: " . $e->getMessage());
+                error_log("Gagal menyimpan ulasan: " . $e->getMessage());
+                header("Location: index.php?page=home&review=error");
+                exit();
             }
         }
     }

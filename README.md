@@ -72,3 +72,49 @@ TAHAP 5: MENGISI DATA AWAL (SEEDING)
 7. Jika muncul pesan "Success", artinya data mobil & motor lengkap sudah masuk!
 
 Selesai! Sekarang website CrystalWash di komputer Anda sepenuhnya berjalan mandiri menggunakan database Supabase Anda sendiri.
+
+=============================================================
+TAHAP 6: PRODUCTION DEPLOYMENT (RAILWAY)
+-------------------------------------------------------------
+Proyek ini siap dideploy ke Railway menggunakan Docker. Berikut adalah langkah-langkahnya:
+
+1. Buat Service Baru di Railway:
+   - Hubungkan repositori GitHub Anda ke Railway.
+   - Railway akan mendeteksi `Dockerfile` secara otomatis dan melakukan build.
+
+2. Konfigurasi Database Migration di Production:
+   - Jalankan perintah migrasi skema database Supabase menggunakan command line:
+     `npx prisma migrate deploy`
+     (Perintah ini akan menerapkan seluruh migrasi pending tanpa merusak data production).
+
+3. Konfigurasi Environment Variables di Railway:
+   - Masuk ke tab **Variables** di service Anda pada Railway.
+   - Tambahkan variabel berikut:
+     * `DATABASE_URL`: URL koneksi database PostgreSQL (Supabase) Anda dengan pooler (contoh: `postgresql://postgres...:[YOUR-PASSWORD]@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true`).
+     * `APP_ENV`: `production` (agar error database sensitif tidak ditampilkan ke publik).
+     * `PORT`: `80` (default port untuk Railway).
+     * `MIDTRANS_SERVER_KEY`: Server Key dari Dashboard Midtrans.
+     * `MIDTRANS_CLIENT_KEY`: Client Key dari Dashboard Midtrans.
+     * `MIDTRANS_IS_PRODUCTION`: `false` (Sandbox) atau `true` (Production).
+
+4. Konfigurasi Health Check di Railway:
+   - Anda perlu mengonfigurasi jalur pemantauan kesehatan aplikasi secara manual melalui Railway Service Settings dengan mengarahkan Health Check Path ke `/health.php`.
+
+5. Selesai!
+
+
+=============================================================
+TAHAP 7: KONFIGURASI MIDTRANS (SANDBOX & PRODUCTION)
+-------------------------------------------------------------
+Untuk menggunakan pembayaran online (QRIS):
+
+1. Ambil Server Key dan Client Key Anda dari Dashboard Midtrans (pilih Sandbox untuk pengujian awal).
+2. PENTING: Jangan pernah membagikan atau memasukkan key asli Anda ke file `.env.example`. Hanya masukkan ke file `.env` lokal Anda yang di-ignore oleh git:
+   ```env
+   MIDTRANS_SERVER_KEY="Isi_dengan_server_key_anda"
+   MIDTRANS_CLIENT_KEY="Isi_dengan_client_key_anda"
+   MIDTRANS_IS_PRODUCTION=false
+   ```
+3. Di server production (seperti Railway), tambahkan ketiga variabel lingkungan di atas pada tab **Variables**.
+4. PENTING: Karena Sandbox Server Key sebelumnya sempat tercatat di riwayat repositori, pastikan Anda melakukan **rotasi (regenerate) Server Key** baru di Dashboard Midtrans demi keamanan!
+5. Status Integrasi QRIS: Saat ini alur QRIS berjalan pada mode Sandbox. Sebelum berpindah ke mode production (transaksi nyata), Anda harus mengonfigurasi Webhook URL resmi di dashboard Midtrans yang mengarah ke endpoint konfirmasi status pembayaran aplikasi Anda untuk menjamin pembaruan status otomatis tanpa interaksi manual dari tombol pengguna.

@@ -4,6 +4,7 @@ require_once BASE_PATH . '/app/Config/database.php';
 require_once BASE_PATH . '/app/Helpers/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    verify_csrf();
     $next_step = $_POST['next_step'];
 
     // =========================================================

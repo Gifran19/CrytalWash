@@ -4,6 +4,7 @@
 </div>
 
 <form action="index.php?action=payment_gateway" method="POST" class="space-y-6">
+    <?php csrf_field(); ?>
     
     <div class="space-y-4">
         <!-- COD (Cash) -->

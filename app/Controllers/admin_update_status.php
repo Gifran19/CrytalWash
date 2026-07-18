@@ -1,7 +1,5 @@
 <?php
 // app/Controllers/admin_update_status.php
-session_start();
-
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header('Location: index.php?page=home&show_login=true');
     exit;
@@ -10,6 +8,7 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 require_once BASE_PATH . '/app/Config/database.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $id_booking = $_POST['id_booking'] ?? null;
     $new_status = $_POST['new_status'] ?? null;
 
@@ -17,6 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($id_booking && $new_status && in_array($new_status, $valid_statuses)) {
         try {
+            $conn->beginTransaction();
+
             // Update booking status
             $stmt = $conn->prepare("UPDATE booking SET status = :status WHERE id_booking = :id_booking");
             $stmt->execute([
@@ -41,7 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $_SESSION['sweetalert_success'] = 'Booking berhasil diselesaikan!';
             }
+
+            $conn->commit();
         } catch (PDOException $e) {
+            $conn->rollBack();
             $_SESSION['sweetalert_error'] = 'Terjadi kesalahan pada sistem.';
         }
     }

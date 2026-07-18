@@ -12,6 +12,7 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 require_once BASE_PATH . '/app/Config/database.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $action = $_POST['manage_action'] ?? '';
 
     try {

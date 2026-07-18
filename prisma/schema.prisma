@@ -87,7 +87,6 @@ model booking {
   transaksi  transaksi?
   invoice    invoice?
   feedback   feedback?
-
 }
 
 // ===========================================================
@@ -106,12 +105,17 @@ model antrian {
 // Model: Pembayaran (Payment)
 // ===========================================================
 model pembayaran {
-  id_pembayaran Int      @id @default(autoincrement())
-  metode        String   @db.VarChar(20) // 'COD', 'Credit', 'Ewallet'
-  status        String   @default("unpaid") @db.VarChar(20)
-  total         Int
-  id_booking    Int      @unique
-  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  id_pembayaran           Int       @id @default(autoincrement())
+  metode                  String    @db.VarChar(20) // 'COD', 'Credit', 'Ewallet'
+  status                  String    @default("unpaid") @db.VarChar(20)
+  total                   Int
+  id_booking              Int       @unique
+  created_at              DateTime  @default(now()) @db.Timestamptz(6)
+  midtrans_order_id       String?   @db.VarChar(100)
+  midtrans_transaction_id String?   @db.VarChar(100)
+  midtrans_status         String?   @db.VarChar(50)
+  paid_at                 DateTime? @db.Timestamptz(6)
+  updated_at              DateTime? @updatedAt @db.Timestamptz(6)
 
   booking booking @relation(fields: [id_booking], references: [id_booking])
 }

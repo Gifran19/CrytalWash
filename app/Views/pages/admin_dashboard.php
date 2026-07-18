@@ -825,6 +825,7 @@ if ($current_section === 'ulasan') {
                         } else {
                             // E-Wallet/Kartu atau sudah lunas → tombol Tandai Selesai
                             echo '<form method="POST" action="index.php?action=admin_update_status" style="display:inline;margin:0;" onsubmit="confirmSelesaiProses(event, this);">';
+                            csrf_field();
                             echo '<input type="hidden" name="id_booking" value="' . $bk['id_booking'] . '">';
                             echo '<input type="hidden" name="new_status" value="completed">';
                             echo '<button type="submit" style="background:#16a34a;color:#fff;border:none;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background 0.2s;" onmouseover="this.style.background=\'#15803d\'" onmouseout="this.style.background=\'#16a34a\'">✓ ' . trans('admin_action_mark_finish') . '</button>';
@@ -1450,6 +1451,7 @@ if ($current_section === 'ulasan') {
                     </button>
                 </div>
                 <form action="index.php?action=admin_manage_layanan" method="POST" class="p-6">
+                    <?php csrf_field(); ?>
                     <input type="hidden" name="manage_action" value="add">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1"><?= trans('admin_mod_label_service') ?></label>
@@ -1486,6 +1488,7 @@ if ($current_section === 'ulasan') {
                     </button>
                 </div>
                 <form action="index.php?action=admin_manage_layanan" method="POST" class="p-6">
+                    <?php csrf_field(); ?>
                     <input type="hidden" name="manage_action" value="edit">
                     <input type="hidden" name="id_layanan" id="edit_id">
                     <div class="mb-4">
@@ -1520,6 +1523,7 @@ if ($current_section === 'ulasan') {
                     <svg class="mx-auto mb-4 text-red-500 w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     <h3 class="mb-6 text-lg font-normal text-gray-700"><?= trans('admin_mod_del_title') ?></h3>
                     <form action="index.php?action=admin_manage_layanan" method="POST" class="flex justify-center space-x-3">
+                        <?php csrf_field(); ?>
                         <input type="hidden" name="manage_action" value="delete">
                         <input type="hidden" name="id_layanan" id="delete_id">
                         <button type="button" onclick="document.getElementById('modal-delete').classList.remove('show')" class="text-gray-500 bg-white hover:bg-gray-100 border border-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 transition-colors"><?= trans('admin_mod_btn_cancel') ?></button>
@@ -1844,6 +1848,7 @@ if ($current_section === 'ulasan') {
             <button type="button" class="payment-modal-close" onclick="document.getElementById('modal-payment').classList.remove('show')">&times;</button>
         </div>
         <form action="index.php?action=admin_pay_transaction" method="POST" style="margin:0; display:flex; flex-direction:column; min-height:0;">
+            <?php csrf_field(); ?>
             <div class="payment-modal-body p-6">
                 <input type="hidden" name="id_booking" id="pay_id_booking">
                 <input type="hidden" id="pay_total" name="total_tagihan">
@@ -1901,6 +1906,7 @@ if ($current_section === 'ulasan') {
             <button type="button" class="payment-modal-close" onclick="document.getElementById('modal-mulai-proses').classList.remove('show')">&times;</button>
         </div>
         <form action="index.php?action=admin_update_status" method="POST" style="margin:0; display:flex; flex-direction:column; min-height:0;">
+            <?php csrf_field(); ?>
             <div class="payment-modal-body p-6">
                 <input type="hidden" name="id_booking" id="mulai_id_booking">
                 <input type="hidden" name="new_status" value="in_progress">

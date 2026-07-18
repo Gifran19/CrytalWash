@@ -1,5 +1,13 @@
 <?php
 // Front Controller
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => '',
+    'secure' => isset($_SERVER['HTTPS']) || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https'),
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 session_start();
 
 // Define BASE_PATH for easier includes
@@ -12,6 +20,7 @@ if (isset($_GET['lang']) && in_array($_GET['lang'], ['id', 'en'])) {
 
 // Load helper functions
 require_once BASE_PATH . '/app/Helpers/functions.php';
+require_once BASE_PATH . '/app/Services/MidtransService.php';
 
 // Route Actions (POST/Redirects)
 $action = $_GET['action'] ?? null;
