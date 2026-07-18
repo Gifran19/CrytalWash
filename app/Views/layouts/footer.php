@@ -41,6 +41,7 @@
             </div>
 
             <form id="modalLoginForm" action="index.php?action=admin_login" method="POST">
+                <?php csrf_field(); ?>
                 <div class="mb-4">
                     <label for="modalUsername" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
                     <input type="text" id="modalUsername" name="username" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-slate-700 dark:text-white rounded-xl focus:ring-olive-500 focus:border-olive-500 outline-none transition" placeholder="Masukkan username" required>

@@ -11,15 +11,20 @@
 -- 4. Klik tombol "Run" (atau tekan Cmd/Ctrl + Enter).
 -- ==============================================================================
 
--- 1. Insert Data Akun Kasir / Admin
--- Password default adalah 'admin123'
--- Hash ini di-generate menggunakan algoritma BCRYPT standar PHP (password_hash)
-INSERT INTO kasir (username, password) 
-VALUES (
-    'admin', 
-    '$2y$10$QO0R5l8/0b68aA/m.zF/JeeB2m1Yc2mGfB8A9x/Q8IqXgA/8uYjE2' -- Hash untuk 'admin123'
-)
-ON CONFLICT (username) DO NOTHING;
+-- ==============================================================================
+-- 1. PEMBUATAN AKUN KASIR / ADMIN (MANUAL & AMAN)
+-- ==============================================================================
+-- Demi alasan keamanan, akun kasir/admin tidak lagi di-insert secara otomatis via seed.
+-- Administrator harus membuat atau mengubah password kasir secara manual langsung 
+-- di database menggunakan hash BCRYPT aman.
+--
+-- CARA MEMBUAT HASH PASSWORD SECARA LOKAL DI PHP:
+-- php -r "echo password_hash('KataSandiKuatAnda', PASSWORD_BCRYPT);"
+--
+-- QUERY UNTUK MENYISIPKAN / MEMPERBARUI AKUN ADMIN:
+-- INSERT INTO kasir (username, password) VALUES ('admin', 'HASH_PASSWORD_BARU_ANDA');
+-- UPDATE kasir SET password = 'HASH_PASSWORD_BARU_YANG_KUAT' WHERE username = 'admin';
+-- ==============================================================================
 
 -- 2. Insert Data Layanan Standar
 -- Memastikan kolom jenis_kendaraan tersedia di tabel layanan (mencegah error 42703 di Supabase)
@@ -36,7 +41,6 @@ WHERE id_layanan NOT IN (
 -- Tambahkan constraint UNIQUE pada nama_layanan agar tidak ada duplikasi di masa depan
 ALTER TABLE layanan DROP CONSTRAINT IF EXISTS layanan_nama_layanan_key;
 ALTER TABLE layanan ADD CONSTRAINT layanan_nama_layanan_key UNIQUE (nama_layanan);
-
 
 INSERT INTO layanan (nama_layanan, harga, jenis_kendaraan) 
 VALUES 
@@ -172,7 +176,7 @@ VALUES
     ('Wuling Cloud EV', 50000, 'Mobil Besar'),
     ('Wuling Confero', 50000, 'Mobil Besar'),
     ('Wuling Cortez', 50000, 'Mobil Besar'),
-    ('Lainnya Mobil', 50000, 'Mobil Besar'),
+    ('Lainnya (Mobil)', 90000, 'Mobil Besar'),
 
     -- Motor Kecil (Rp 15.000)
     ('Honda Astrea', 15000, 'Motor'),
@@ -252,5 +256,5 @@ VALUES
     ('Yamaha WR155', 20000, 'Motor Besar'),
     ('Yamaha XMAX', 20000, 'Motor Besar'),
     ('Yamaha XSR', 20000, 'Motor Besar'),
-    ('Lainnya Motor', 20000, 'Motor Besar')
+    ('Lainnya (Motor)', 35000, 'Motor Besar')
 ON CONFLICT (nama_layanan) DO NOTHING;

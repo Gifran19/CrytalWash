@@ -1,7 +1,5 @@
 <?php
 // app/Controllers/admin_pay_transaction.php
-session_start();
-
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header('Location: index.php?page=home&show_login=true');
     exit;
@@ -10,6 +8,7 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 require_once BASE_PATH . '/app/Config/database.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $id_booking = $_POST['id_booking'] ?? null;
     $total_tagihan = isset($_POST['total_tagihan']) ? (int)$_POST['total_tagihan'] : 0;
     $uang_dibayar = isset($_POST['uang_dibayarkan']) ? (int)$_POST['uang_dibayarkan'] : 0;
@@ -22,6 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         try {
+            $conn->beginTransaction();
+
             // Mark payment as paid
             $stmt = $conn->prepare("UPDATE pembayaran SET status = 'paid' WHERE id_booking = :id_booking");
             $stmt->execute(['id_booking' => $id_booking]);
@@ -33,7 +34,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Also mark antrian as selesai
             $stmt = $conn->prepare("UPDATE antrian SET status = 'selesai' WHERE id_booking = :id_booking");
             $stmt->execute(['id_booking' => $id_booking]);
+
+            $conn->commit();
         } catch (PDOException $e) {
+            $conn->rollBack();
             // handle error if needed
         }
     }

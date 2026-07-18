@@ -12,25 +12,35 @@ if ($id_booking) {
     $stmt = $conn->prepare("SELECT 
             b.estimasi_waktu, b.tanggal, b.status,
             l.nama_layanan,
-            k.no_plat,
-            a.nomor_antrian, a.status AS antrian_status
+            k.no_plat, k.jenis AS tipe_kendaraan,
+            a.nomor_antrian, a.status AS antrian_status,
+            p.total AS total_harga,
+            pl.nama, pl.email
         FROM booking b
         JOIN layanan l ON b.id_layanan = l.id_layanan
         JOIN kendaraan k ON b.id_kendaraan = k.id_kendaraan
         LEFT JOIN antrian a ON b.id_booking = a.id_booking
+        LEFT JOIN pembayaran p ON b.id_booking = p.id_booking
+        LEFT JOIN pelanggan pl ON b.id_pelanggan = pl.id_pelanggan
         WHERE b.id_booking = :id_booking");
     $stmt->execute(['id_booking' => $id_booking]);
     $booking_data = $stmt->fetch() ?: [];
 }
 
+// Pastikan booking valid dan ada di database
+if (!$id_booking || empty($booking_data)) {
+    header("Location: index.php?page=home");
+    exit();
+}
+
 // Data untuk ditampilkan
-$selected_service = $booking_data['nama_layanan'] ?? ($order['layanan'] ?? 'Premium Wash');
-$work_duration    = $booking_data['estimasi_waktu'] ?? ($order['estimasi_waktu'] ?? 45);
-$name             = $order['nama'] ?? 'Guest';
-$date             = $booking_data['tanggal'] ?? date('Y-m-d');
-$email            = $order['email'] ?? '-';
-$vehicle          = $order['tipe'] ?? 'Mobil';
-$total            = $order['total_price'] ?? 0;
+$selected_service = $booking_data['nama_layanan'];
+$work_duration    = $booking_data['estimasi_waktu'];
+$name             = $booking_data['nama'] ?? 'Guest';
+$date             = $booking_data['tanggal'];
+$email            = $booking_data['email'] ?? '-';
+$vehicle          = $booking_data['tipe_kendaraan'] ?? 'Mobil';
+$total            = $booking_data['total_harga'] ?? 0;
 
 // Hitung perkiraan waktu selesai
 $start_time = $_SESSION['order']['start_time'] ?? time();
@@ -113,6 +123,7 @@ $formatted_finish_time = date('H:i', $estimated_finish_time) . ' WIB';
             </div>
 
             <form action="index.php?action=submit_review" method="POST" class="flex-grow flex flex-col">
+                <?php csrf_field(); ?>
                 <?php if ($id_booking): ?>
                     <input type="hidden" name="id_booking" value="<?= htmlspecialchars($id_booking) ?>">
                 <?php else: ?>

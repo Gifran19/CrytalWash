@@ -56,4 +56,36 @@ function trans($key) {
     // Kembalikan teks translasi atau key aslinya jika tidak ditemukan
     return $translations[$lang][$key] ?? $key;
 }
+
+/**
+ * Mendapatkan token CSRF dari session
+ */
+function csrf_token() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Mencetak input hidden CSRF
+ */
+function csrf_field() {
+    echo '<input type="hidden" name="csrf_token" value="' . htmlspecialchars(csrf_token()) . '">';
+}
+
+/**
+ * Memvalidasi token CSRF dari request POST
+ */
+function verify_csrf() {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $token = $_POST['csrf_token'] ?? '';
+        $sessionToken = $_SESSION['csrf_token'] ?? '';
+        if (empty($token) || empty($sessionToken) || !hash_equals($sessionToken, $token)) {
+            header('HTTP/1.1 403 Forbidden');
+            echo '<h1>403 Forbidden: Validasi token keamanan gagal.</h1>';
+            exit;
+        }
+    }
+}
 ?>

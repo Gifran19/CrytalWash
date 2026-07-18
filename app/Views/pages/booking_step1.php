@@ -4,6 +4,7 @@
 </div>
 
 <form action="index.php?action=auth_booking" method="POST" class="flex flex-col gap-5">
+    <?php csrf_field(); ?>
     <input type="hidden" name="next_step" value="2">
     
     <div class="group">

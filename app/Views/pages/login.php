@@ -44,6 +44,7 @@ exit;
             <?php endif; ?>
 
             <form action="index.php?action=admin_login" method="POST" id="loginForm">
+                <?php csrf_field(); ?>
                 <div class="mb-4">
                     <label for="username" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide block mb-1"><?= trans('admin_login_username') ?></label>
                     <input type="text" id="username" name="username" autocomplete="username" required
