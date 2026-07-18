@@ -31,13 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id_pelanggan = $conn->lastInsertId();
         }
 
-        // Reset order session and store fresh step 1 data
-        $_SESSION['order'] = [
-            'id_pelanggan' => $id_pelanggan,
-            'nama'         => $nama,
-            'whatsapp'     => $no_hp,
-            'email'        => $email
-        ];
+        // Simpan ke session
+        $_SESSION['order']['id_pelanggan'] = $id_pelanggan;
+        $_SESSION['order']['nama']  = $nama;
+        $_SESSION['order']['whatsapp'] = $no_hp;
+        $_SESSION['order']['email'] = $email;
     }
 
     // =========================================================
@@ -62,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit();
         }
 
-        // Validasi format plat nomor Indonesia: 1-2 Huruf, 1-4 Angka, 1-3 Huruf (tanpa spasi karena sudah di-clean)
+        // Validasi format plat nomor Indonesia: 1-2 Huruf, 1-4 Angka, 0-3 Huruf (tanpa spasi karena sudah di-clean)
         if (!preg_match('/^[A-Z]{1,2}[0-9]{1,4}[A-Z]{0,3}$/', $plat)) {
             header("Location: index.php?page=checkout&step=2&error=invalid_plat");
             exit();
@@ -103,42 +101,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['order']['tipe']    = $tipe;
         $_SESSION['order']['tanggal'] = $tanggal;
         $_SESSION['order']['jam']     = $jam;
+        
+        // Lookup harga dari database berdasarkan nama layanan (aman & tidak percaya harga dari browser)
+        $layanan_name = cleanInput($_POST['layanan'] ?? '');
+        $stmt = $conn->prepare("SELECT id_layanan, harga, nama_layanan FROM layanan WHERE nama_layanan = :layanan LIMIT 1");
+        $stmt->execute(['layanan' => $layanan_name]);
+        $layanan_data = $stmt->fetch();
 
-        // Simpan data layanan dan hitung harga
-        if (isset($_POST['layanan'])) {
-            $nama_layanan = cleanInput($_POST['layanan']);
-
-            // Lookup harga dari database (bukan hardcode) untuk keamanan
-            $stmt = $conn->prepare("SELECT id_layanan, harga FROM layanan WHERE nama_layanan = :nama LIMIT 1");
-            $stmt->execute(['nama' => $nama_layanan]);
-            $layanan_data = $stmt->fetch();
-
-            if ($layanan_data) {
-                $_SESSION['order']['id_layanan']   = $layanan_data['id_layanan'];
-                $_SESSION['order']['total_price']  = $layanan_data['harga'];
-                $_SESSION['order']['layanan']      = $nama_layanan;
-            } else {
-                // Jika memilih opsi Lainnya, pastikan ada di tabel layanan agar tidak error foreign key
-                $harga_lainnya = ($tipe === 'Motor') ? 35000 : 90000;
-                $jenis_lainnya = ($tipe === 'Motor') ? 'Motorcycle' : 'Car';
-                $nama_lainnya  = ($tipe === 'Motor') ? 'Model Lainnya (Motor)' : 'Model Lainnya (Mobil)';
-
-                $stmt = $conn->prepare("SELECT id_layanan FROM layanan WHERE nama_layanan = :nama LIMIT 1");
-                $stmt->execute(['nama' => $nama_lainnya]);
-                $existing_lainnya = $stmt->fetch();
-
-                if ($existing_lainnya) {
-                    $id_lay_lainnya = $existing_lainnya['id_layanan'];
-                } else {
-                    $stmt = $conn->prepare("INSERT INTO layanan (nama_layanan, harga, jenis_kendaraan) VALUES (:nama, :harga, :jenis)");
-                    $stmt->execute(['nama' => $nama_lainnya, 'harga' => $harga_lainnya, 'jenis' => $jenis_lainnya]);
-                    $id_lay_lainnya = $conn->lastInsertId();
-                }
-
-                $_SESSION['order']['id_layanan']   = $id_lay_lainnya;
-                $_SESSION['order']['total_price']  = $harga_lainnya;
-                $_SESSION['order']['layanan']      = $nama_lainnya;
-            }
+        if ($layanan_data) {
+            $_SESSION['order']['id_layanan']   = $layanan_data['id_layanan'];
+            $_SESSION['order']['total_price']  = $layanan_data['harga'];
+            $_SESSION['order']['layanan']      = $layanan_data['nama_layanan'];
         }
     }
 

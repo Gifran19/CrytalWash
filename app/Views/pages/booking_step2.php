@@ -93,7 +93,7 @@ if ($error === 'duplicate_plat'): ?>
         <div class="grid grid-cols-2 gap-4">
             <!-- Mobil -->
             <label class="relative cursor-pointer group">
-                <input type="radio" name="tipe" value="Mobil" checked onchange="updateDropdown('Mobil')" class="peer sr-only">
+                <input type="radio" name="tipe" value="Mobil" <?= ($_SESSION['order']['tipe'] ?? 'Mobil') === 'Mobil' ? 'checked' : '' ?> onchange="updateDropdown('Mobil')" class="peer sr-only">
                 <div class="h-full p-5 border border-gray-200 dark:border-gray-700 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 peer-checked:border-olive-700 dark:peer-checked:border-olive-500 peer-checked:ring-2 peer-checked:ring-olive-400 peer-checked:bg-olive-50 dark:peer-checked:bg-gray-800/80 bg-white dark:bg-gray-800 shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5">
                     <svg class="w-8 h-8 mb-2 text-gray-600 dark:text-gray-400 peer-checked:text-olive-700 dark:peer-checked:text-olive-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 18h14M5 18a2 2 0 002-2v-4M5 18a2 2 0 01-2-2v-4a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M19 18a2 2 0 002-2v-4M5 10l1.5-4.5h11L19 10m-14 0h14"></path>
@@ -105,7 +105,7 @@ if ($error === 'duplicate_plat'): ?>
             </label>
             <!-- Motor -->
             <label class="relative cursor-pointer group">
-                <input type="radio" name="tipe" value="Motor" onchange="updateDropdown('Motor')" class="peer sr-only">
+                <input type="radio" name="tipe" value="Motor" <?= ($_SESSION['order']['tipe'] ?? '') === 'Motor' ? 'checked' : '' ?> onchange="updateDropdown('Motor')" class="peer sr-only">
                 <div class="h-full p-5 border border-gray-200 dark:border-gray-700 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 peer-checked:border-olive-700 dark:peer-checked:border-olive-500 peer-checked:ring-2 peer-checked:ring-olive-400 peer-checked:bg-olive-50 dark:peer-checked:bg-gray-800/80 bg-white dark:bg-gray-800 shadow-sm group-hover:shadow-md group-hover:-translate-y-0.5">
                     <svg class="w-8 h-8 mb-2 text-gray-600 dark:text-gray-400 peer-checked:text-olive-700 dark:peer-checked:text-olive-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <circle cx="5" cy="16" r="3" />
@@ -152,7 +152,7 @@ if ($error === 'duplicate_plat'): ?>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
             </div>
-            <input type="text" name="plat" placeholder="<?= trans('bk_step2_plate_placeholder') ?>" required maxlength="20" pattern="[A-Za-z]{1,2}\s?[0-9]{1,4}\s?[A-Za-z]{0,3}" title="<?= trans('bk_step2_plate_title') ?>"
+            <input type="text" name="plat" value="<?= htmlspecialchars($_SESSION['order']['plat'] ?? '') ?>" placeholder="<?= trans('bk_step2_plate_placeholder') ?>" required maxlength="20" pattern="[A-Za-z]{1,2}\s?[0-9]{1,4}\s?[A-Za-z]{0,3}" title="<?= trans('bk_step2_plate_title') ?>"
                 class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl py-4 pl-12 pr-4 text-gray-800 dark:text-gray-100 uppercase placeholder:normal-case placeholder:text-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-olive-400 focus:border-olive-700 dark:focus:ring-olive-500 focus:outline-none transition-all duration-300">
         </div>
     </div>
@@ -169,7 +169,7 @@ if ($error === 'duplicate_plat'): ?>
                     </svg>
                 </div>
                 <!-- Date Picker -->
-                <input type="date" name="tanggal" value="<?= date('Y-m-d') ?>" required
+                <input type="date" name="tanggal" value="<?= htmlspecialchars($_SESSION['order']['tanggal'] ?? date('Y-m-d')) ?>" required
                     class="w-full py-4 pl-12 pr-4 border-none focus:ring-0 text-sm font-semibold text-gray-800 dark:text-gray-100 bg-transparent outline-none [color-scheme:light] dark:[color-scheme:dark]">
             </div>
             
@@ -241,6 +241,7 @@ if ($error === 'duplicate_plat'): ?>
 <script>
 const servicesMobil = <?= json_encode($services_mobil) ?>;
 const servicesMotor = <?= json_encode($services_motor) ?>;
+const oldLayanan = <?= json_encode($_SESSION['order']['layanan'] ?? '') ?>;
 
 // Data antrian per jenis dari server
 const antrianData = {
@@ -271,15 +272,22 @@ function updateDropdown(tipe) {
         opt.value = s.nama_layanan;
         opt.setAttribute('data-harga', s.harga);
         opt.textContent = s.nama_layanan;
+        if (s.nama_layanan === oldLayanan) {
+            opt.selected = true;
+        }
         select.appendChild(opt);
     });
     
     // Tambahkan opsi 'Model Lainnya' di paling bawah
     const optLainnya = document.createElement('option');
     const hargaLainnya = (tipe === 'Mobil') ? 90000 : 35000;
-    optLainnya.value = (tipe === 'Mobil') ? 'Lainnya (Mobil)' : 'Lainnya (Motor)';
+    const valueLainnya = (tipe === 'Mobil') ? 'Lainnya (Mobil)' : 'Lainnya (Motor)';
+    optLainnya.value = valueLainnya;
     optLainnya.setAttribute('data-harga', hargaLainnya);
     optLainnya.textContent = 'Model Lainnya / Cek di Lokasi';
+    if (valueLainnya === oldLayanan) {
+        optLainnya.selected = true;
+    }
     select.appendChild(optLainnya);
     
     // Update antrian badge & estimasi sesuai jenis kendaraan
@@ -323,6 +331,7 @@ function updatePrice() {
 
 // Inisialisasi awal saat halaman dimuat
 document.addEventListener('DOMContentLoaded', () => {
-    updateDropdown('Mobil');
+    const selectedTipe = document.querySelector('input[name="tipe"]:checked')?.value || 'Mobil';
+    updateDropdown(selectedTipe);
 });
 </script>
