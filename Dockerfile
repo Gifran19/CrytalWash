@@ -25,3 +25,6 @@ RUN chown -R www-data:www-data /var/www/html
 
 # Expose port 80
 EXPOSE 80
+
+# Fix AH00534 Apache MPM conflict error on startup
+CMD ["sh", "-c", "a2dismod mpm_event mpm_worker || true; a2enmod mpm_prefork || true; apache2-foreground"]
