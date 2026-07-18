@@ -17,7 +17,7 @@
 INSERT INTO kasir (username, password) 
 VALUES (
     'admin', 
-    '$2y$10$ChvzsP7ipONnUpPUC5Kx0.3.MWhcqaiKOj55IBHX4mRAZywScoFfu' -- Hash untuk 'admin123'
+    '$2y$10$W5TwsUP9AZUXfCyERDMAxeqpFd7wf76K0PyK4gHiUuxWk4JmA83Ly' -- Hash untuk 'CrystalWash20!'
 )
 ON CONFLICT (username) DO NOTHING;
 
