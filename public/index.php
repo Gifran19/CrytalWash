@@ -6,7 +6,7 @@ date_default_timezone_set('Asia/Jakarta');
 session_set_cookie_params([
     'lifetime' => 0,
     'path' => '/',
-    'domain' => '',
+    'domain' => null,
     'secure' => isset($_SERVER['HTTPS']) || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https'),
     'httponly' => true,
     'samesite' => 'Lax'
