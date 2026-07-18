@@ -123,6 +123,7 @@ $formatted_finish_time = date('H:i', $estimated_finish_time) . ' WIB';
             </div>
 
             <form action="index.php?action=submit_review" method="POST" class="flex-grow flex flex-col">
+                <?php csrf_field(); ?>
                 <?php if ($id_booking): ?>
                     <input type="hidden" name="id_booking" value="<?= htmlspecialchars($id_booking) ?>">
                 <?php else: ?>
