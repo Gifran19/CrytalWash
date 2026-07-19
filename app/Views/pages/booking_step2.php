@@ -239,10 +239,10 @@ if ($error === 'duplicate_plat'): ?>
     
     <!-- Buttons -->
     <div class="flex space-x-4 pt-6 mt-2 border-t border-gray-100 dark:border-gray-700">
-        <button type="button" onclick="window.history.back()" class="w-1/3 px-6 py-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl font-bold text-sm hover:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300">
+        <button type="button" onclick="window.history.back()" class="w-1/3 px-3 py-3 sm:px-6 sm:py-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl font-bold text-xs sm:text-sm hover:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300">
             Kembali
         </button>
-        <button type="submit" class="w-2/3 px-6 py-4 bg-olive-700 text-white rounded-xl font-bold text-lg hover:bg-olive-800 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
+        <button type="submit" class="w-2/3 px-4 py-3 sm:px-6 sm:py-4 bg-olive-700 text-white rounded-xl font-bold text-sm sm:text-lg hover:bg-olive-800 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300">
             Lanjut
         </button>
     </div>

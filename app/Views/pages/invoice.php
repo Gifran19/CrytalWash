@@ -15,12 +15,14 @@ if ($query_id && is_numeric($query_id)) {
     $stmt = $conn->prepare("SELECT 
             b.*, l.nama_layanan, l.harga, k.no_plat, k.jenis,
             p.nama, p.email, p.no_hp,
-            pay.metode AS db_payment_method, pay.status AS db_payment_status
+            pay.metode AS db_payment_method, pay.status AS db_payment_status,
+            a.nomor_antrian
         FROM booking b
         JOIN layanan l ON b.id_layanan = l.id_layanan
         JOIN kendaraan k ON b.id_kendaraan = k.id_kendaraan
         JOIN pelanggan p ON b.id_pelanggan = p.id_pelanggan
         LEFT JOIN pembayaran pay ON b.id_booking = pay.id_booking
+        LEFT JOIN antrian a ON b.id_booking = a.id_booking
         WHERE b.id_booking = :id_booking");
     $stmt->execute(['id_booking' => (int)$query_id]);
     $booking_data = $stmt->fetch();
@@ -88,7 +90,15 @@ if (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'page=fi
         <div class="text-center pt-12 pb-8 px-10">
             <h2 class="text-5xl font-light tracking-widest text-gray-900 mb-6">INVOICE</h2>
             <p class="text-sm text-gray-500 mb-1">No: <span class="font-semibold text-gray-900"><?= htmlspecialchars($id_booking) ?></span></p>
-            <p class="text-sm text-gray-500">Invoice date: <span class="font-semibold text-gray-900"><?= $date ?></span></p>
+            <p class="text-sm text-gray-500 mb-1">Invoice date: <span class="font-semibold text-gray-900"><?= $date ?></span></p>
+            <?php
+            $queue_number = $booking_data['nomor_antrian'] ?? null;
+            $tipe_kendaraan = $booking_data['jenis'] ?? ($order['tipe'] ?? 'Mobil');
+            $is_motor_bk = (strpos(strtolower($tipe_kendaraan), 'motor') !== false || strpos(strtolower($tipe_kendaraan), 'motorcycle') !== false);
+            $prefix_bk = $is_motor_bk ? 'M' : 'C';
+            $queue_display = $queue_number ? $prefix_bk . '-' . str_pad($queue_number, 2, '0', STR_PAD_LEFT) : '-';
+            ?>
+            <p class="text-sm text-gray-500">Nomor Antrian: <span class="font-bold text-olive-700 font-mono"><?= $queue_display ?></span></p>
         </div>
 
         <div class="px-8 md:px-12 space-y-6">

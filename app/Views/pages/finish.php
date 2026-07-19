@@ -42,6 +42,12 @@ $email            = $booking_data['email'] ?? '-';
 $vehicle          = $booking_data['tipe_kendaraan'] ?? 'Mobil';
 $total            = $booking_data['total_harga'] ?? 0;
 
+// Hitung nomor antrian
+$queue_number     = $booking_data['nomor_antrian'] ?? null;
+$is_motor_bk      = (strpos(strtolower($vehicle), 'motor') !== false || strpos(strtolower($vehicle), 'motorcycle') !== false);
+$prefix_bk        = $is_motor_bk ? 'M' : 'C';
+$queue_display    = $queue_number ? $prefix_bk . '-' . str_pad($queue_number, 2, '0', STR_PAD_LEFT) : '-';
+
 // Hitung perkiraan waktu selesai
 $start_time = $_SESSION['order']['start_time'] ?? time();
 $estimated_finish_time = $start_time + ($work_duration * 60);
@@ -99,8 +105,21 @@ $formatted_finish_time = date('H:i', $estimated_finish_time) . ' WIB';
                 </div>
             </div>
 
-            <!-- Card 2: Estimasi Waktu -->
+            <!-- Card 2: Nomor Antrian & Estimasi Waktu -->
             <div class="bg-white dark:bg-gray-800 border border-transparent dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 flex flex-col items-center text-center transition-colors duration-300">
+                <!-- Tampilan Nomor Antrian -->
+                <div class="mb-6 w-full pb-6 border-b border-gray-100 dark:border-gray-700">
+                    <span class="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider block mb-2">Nomor Antrian Anda</span>
+                    <?php
+                    $badge_bg = $is_motor_bk ? 'bg-green-50 dark:bg-green-950/30' : 'bg-blue-50 dark:bg-blue-950/30';
+                    $badge_border = $is_motor_bk ? 'border-green-200 dark:border-green-800' : 'border-blue-200 dark:border-blue-800';
+                    $badge_text = $is_motor_bk ? 'text-green-700 dark:text-green-400' : 'text-blue-700 dark:text-blue-400';
+                    ?>
+                    <span class="inline-block <?= $badge_bg ?> border <?= $badge_border ?> <?= $badge_text ?> px-8 py-3 rounded-2xl font-bold text-4xl font-mono shadow-sm tracking-wide">
+                        <?= $queue_display ?>
+                    </span>
+                </div>
+
                 <!-- Ikon Jam Hijau Zaitun -->
                 <div class="w-14 h-14 bg-[#4a5d23]/10 dark:bg-olive-900/30 rounded-full flex items-center justify-center mb-4">
                     <svg class="w-8 h-8 text-[#4a5d23] dark:text-olive-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>

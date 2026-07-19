@@ -876,10 +876,6 @@ h1, h2, h3, h4, h5, h6 {
   margin-left: 0.25rem;
 }
 
-.ml-4 {
-  margin-left: 1rem;
-}
-
 .mr-1 {
   margin-right: 0.25rem;
 }
@@ -1324,6 +1320,15 @@ h1, h2, h3, h4, h5, h6 {
   gap: 2rem;
 }
 
+.gap-x-6 {
+  -moz-column-gap: 1.5rem;
+       column-gap: 1.5rem;
+}
+
+.gap-y-2 {
+  row-gap: 0.5rem;
+}
+
 .space-x-1 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(0.25rem * var(--tw-space-x-reverse));
@@ -1340,12 +1345,6 @@ h1, h2, h3, h4, h5, h6 {
   --tw-space-x-reverse: 0;
   margin-right: calc(1rem * var(--tw-space-x-reverse));
   margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
-}
-
-.space-x-6 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 0;
-  margin-right: calc(1.5rem * var(--tw-space-x-reverse));
-  margin-left: calc(1.5rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
 .space-y-3 > :not([hidden]) ~ :not([hidden]) {
@@ -2204,6 +2203,11 @@ h1, h2, h3, h4, h5, h6 {
   color: rgb(37 99 235 / var(--tw-text-opacity));
 }
 
+.text-blue-700 {
+  --tw-text-opacity: 1;
+  color: rgb(29 78 216 / var(--tw-text-opacity));
+}
+
 .text-blue-800 {
   --tw-text-opacity: 1;
   color: rgb(30 64 175 / var(--tw-text-opacity));
@@ -3018,6 +3022,10 @@ label {
   background-color: rgb(30 58 138 / 0.3);
 }
 
+:is(.dark .dark\:bg-blue-950\/30) {
+  background-color: rgb(23 37 84 / 0.3);
+}
+
 :is(.dark .dark\:bg-gray-700) {
   --tw-bg-opacity: 1;
   background-color: rgb(55 65 81 / var(--tw-bg-opacity));
@@ -3051,6 +3059,10 @@ label {
 
 :is(.dark .dark\:bg-green-900\/30) {
   background-color: rgb(20 83 45 / 0.3);
+}
+
+:is(.dark .dark\:bg-green-950\/30) {
+  background-color: rgb(5 46 22 / 0.3);
 }
 
 :is(.dark .dark\:bg-olive-500) {
@@ -3430,6 +3442,11 @@ label {
     padding-right: 1.5rem;
   }
 
+  .sm\:py-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
   .sm\:pl-6 {
     padding-left: 1.5rem;
   }
@@ -3442,6 +3459,16 @@ label {
   .sm\:text-5xl {
     font-size: 3.25rem;
     line-height: 1.1;
+  }
+
+  .sm\:text-lg {
+    font-size: 1.25rem;
+    line-height: 1.75;
+  }
+
+  .sm\:text-sm {
+    font-size: 1rem;
+    line-height: 1.6;
   }
 }
 
@@ -3539,12 +3566,12 @@ label {
     align-items: center;
   }
 
-  .md\:justify-start {
-    justify-content: flex-start;
-  }
-
   .md\:justify-between {
     justify-content: space-between;
+  }
+
+  .md\:gap-0 {
+    gap: 0px;
   }
 
   .md\:p-10 {
@@ -3575,6 +3602,10 @@ label {
 
   .md\:pb-0 {
     padding-bottom: 0px;
+  }
+
+  .md\:text-left {
+    text-align: left;
   }
 
   .md\:text-3xl {

@@ -81,7 +81,7 @@ $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
 <div class="grid grid-cols-1 md:grid-cols-2 gap-0 h-full min-h-[calc(100vh-85px)]">
     <!-- Bagian Form (Kiri) - Super soft olive background with card -->
     <div class="bg-olive-50/40 dark:bg-gray-900 flex flex-col px-6 py-12 md:px-12 lg:px-20 relative transition-colors duration-300">
-        <div class="flex-grow max-w-xl w-full mx-auto bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 md:p-12 animate-fade-in-down transition-colors duration-300">
+        <div class="flex-grow max-w-xl w-full mx-auto bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 sm:p-8 md:p-12 animate-fade-in-down transition-colors duration-300">
             <?php 
             // Panggil tampilan berdasarkan step
             if ($step == 1) include BASE_PATH . '/app/Views/pages/booking_step1.php';
