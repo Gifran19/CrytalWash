@@ -105,9 +105,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         // Lookup harga dari database berdasarkan nama layanan (aman & tidak percaya harga dari browser)
         $layanan_name = cleanInput($_POST['layanan'] ?? '');
+        if (empty($layanan_name)) {
+            $layanan_name = (strtolower($tipe) === 'motor') ? 'Cuci Motor Standar' : 'Cuci Mobil Standar';
+        }
         $stmt = $conn->prepare("SELECT id_layanan, harga, nama_layanan FROM layanan WHERE nama_layanan = :layanan LIMIT 1");
         $stmt->execute(['layanan' => $layanan_name]);
         $layanan_data = $stmt->fetch();
+
+        if (!$layanan_data) {
+            // Fallback jika nama layanan tidak cocok
+            $fallback_name = (strtolower($tipe) === 'motor') ? 'Cuci Motor Standar' : 'Cuci Mobil Standar';
+            $stmt = $conn->prepare("SELECT id_layanan, harga, nama_layanan FROM layanan WHERE nama_layanan = :layanan LIMIT 1");
+            $stmt->execute(['layanan' => $fallback_name]);
+            $layanan_data = $stmt->fetch();
+        }
 
         if ($layanan_data) {
             $_SESSION['order']['id_layanan']   = $layanan_data['id_layanan'];

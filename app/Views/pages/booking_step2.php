@@ -129,7 +129,7 @@ if ($error === 'duplicate_plat'): ?>
             #layanan_list::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
         </style>
         <div class="relative" id="layanan_dropdown_container">
-            <input type="hidden" name="layanan" id="select_layanan" required>
+            <input type="hidden" name="layanan" id="select_layanan" value="Cuci Mobil Standar" required>
             <button type="button" id="layanan_button" class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl py-4 px-4 text-left text-gray-800 dark:text-gray-100 font-medium focus:ring-2 focus:ring-olive-400 focus:border-olive-700 dark:focus:ring-olive-500 focus:outline-none transition-all duration-300 shadow-sm flex items-center justify-between">
                 <span id="layanan_text">Pilih Layanan...</span>
                 <svg class="h-5 w-5 text-gray-400 transition-transform duration-300" id="layanan_arrow" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
